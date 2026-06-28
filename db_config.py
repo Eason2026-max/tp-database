@@ -1,8 +1,8 @@
-# db_config.py - 数据库连接配置
+# db_config.py - 数据库连接配置 (Supabase Cloud)
 DB_CONFIG = {
-    'host': 'localhost',
+    'host': 'db.qlptoqmlxymkosglypfa.supabase.co',
     'port': '5432',
-    'database': 'tp_comparability_db',
+    'database': 'postgres',
     'user': 'postgres',
-    'password': 'Whu.20180622'
+    'password': '6sUlSXv5VS53UcNX'
 }
