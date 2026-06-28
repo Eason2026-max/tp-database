@@ -416,11 +416,13 @@ def load_country_policies() -> pd.DataFrame:
                 THEN 'Local File only'
                 ELSE 'Not specified'
             END AS documentation_req,
-            CASE WHEN COALESCE(cp.safe_harbour_type, '') <> '' THEN TRUE ELSE FALSE END AS safe_harbor,
+            CASE WHEN array_length(cp.safe_harbour_type, 1) IS NOT NULL THEN TRUE ELSE FALSE END AS safe_harbor,
             COALESCE(cp.total_treaties_in_force, 0) AS treaty_count,
             COALESCE(cp.map_cases_filed, 0) AS map_cases_2024,
-            CASE WHEN COALESCE(cp.apa_types_available, '') <> '' THEN TRUE ELSE FALSE END AS apa_available,
-            COALESCE(cp.information_exchange_mechanism, 'N/A') AS exchange_mechanism
+            CASE WHEN array_length(cp.apa_types_available, 1) IS NOT NULL THEN TRUE ELSE FALSE END AS apa_available,
+            CASE WHEN array_length(cp.information_exchange_mechanism, 1) IS NOT NULL
+                 THEN array_to_string(cp.information_exchange_mechanism, ', ')
+                 ELSE 'N/A' END AS exchange_mechanism
         FROM country_policies cp
         JOIN countries co ON co.country_code = cp.country_code
         WHERE cp.policy_period_year = (SELECT MAX(policy_period_year) FROM country_policies)
