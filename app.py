@@ -406,21 +406,21 @@ def load_country_policies() -> pd.DataFrame:
             co.country_name AS country,
             cp.arm_length_principle_enshrined AS has_tp_regulations,
             CASE
-                WHEN cp.master_file_required AND cp.local_file_required AND cp.cbc_report_required
+                WHEN cp.master_file_required = TRUE AND cp.local_file_required = TRUE AND cp.cbc_report_required = TRUE
                 THEN 'Three-tier (Master + Local + CbCR)'
-                WHEN cp.local_file_required AND cp.cbc_report_required
+                WHEN cp.local_file_required = TRUE AND cp.cbc_report_required = TRUE
                 THEN 'Local File + CbCR'
-                WHEN cp.master_file_required AND cp.local_file_required
+                WHEN cp.master_file_required = TRUE AND cp.local_file_required = TRUE
                 THEN 'Master + Local File'
-                WHEN cp.local_file_required
+                WHEN cp.local_file_required = TRUE
                 THEN 'Local File only'
                 ELSE 'Not specified'
             END AS documentation_req,
-            CASE WHEN cp.safe_harbour_type IS NOT NULL AND cp.safe_harbour_type <> '' THEN TRUE ELSE FALSE END AS safe_harbor,
-            cp.total_treaties_in_force AS treaty_count,
-            cp.map_cases_filed AS map_cases_2024,
-            CASE WHEN cp.apa_types_available IS NOT NULL AND cp.apa_types_available <> '' THEN TRUE ELSE FALSE END AS apa_available,
-            cp.information_exchange_mechanism AS exchange_mechanism
+            CASE WHEN COALESCE(cp.safe_harbour_type, '') <> '' THEN TRUE ELSE FALSE END AS safe_harbor,
+            COALESCE(cp.total_treaties_in_force, 0) AS treaty_count,
+            COALESCE(cp.map_cases_filed, 0) AS map_cases_2024,
+            CASE WHEN COALESCE(cp.apa_types_available, '') <> '' THEN TRUE ELSE FALSE END AS apa_available,
+            COALESCE(cp.information_exchange_mechanism, 'N/A') AS exchange_mechanism
         FROM country_policies cp
         JOIN countries co ON co.country_code = cp.country_code
         WHERE cp.policy_period_year = (SELECT MAX(policy_period_year) FROM country_policies)
