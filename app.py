@@ -1023,14 +1023,16 @@ def comparability_wizard() -> None:
     ]
     current_step = st.session_state.get("wiz_current_tab", 0)
 
-    # Show step navigation bar
+    # Show step navigation bar — clickable to jump between steps
     step_cols = st.columns(4)
     for i, (col, label) in enumerate(zip(step_cols, tab_labels)):
         with col:
             if i == current_step:
                 st.markdown(f"**👉 {label}**")
             else:
-                st.markdown(f"<span style='color:#999'>{label}</span>", unsafe_allow_html=True)
+                if st.button(label, key=f"goto_step_{i}", help=f"跳转到 {label}"):
+                    st.session_state.wiz_current_tab = i
+                    st.rerun()
 
     # ========== Step 1 ==========
     if current_step == 0:
@@ -1139,6 +1141,11 @@ def comparability_wizard() -> None:
     if current_step == 1:
         st.subheader("第2步：筛选可比公司")
         st.markdown("设置筛选条件，从数据库中找到与你的交易可比的公司。")
+
+        # Back button
+        if st.button("⬅️ 上一步 / Previous", key="back_to_1"):
+            st.session_state.wiz_current_tab = 0
+            st.rerun()
 
         companies_df = load_mock_companies()
 
@@ -1299,6 +1306,11 @@ def comparability_wizard() -> None:
         st.subheader("第3步：可比性调整")
         st.markdown("对筛选出的可比公司进行调整，使其与被测试方更具可比性。")
 
+        # Back button
+        if st.button("⬅️ 上一步 / Previous", key="back_to_2"):
+            st.session_state.wiz_current_tab = 1
+            st.rerun()
+
         adj_type = st.selectbox(
             "调整类型",
             ["Working Capital Adjustment (WCA)", "Risk Adjustment", "Asset Intensity Adjustment",
@@ -1368,6 +1380,11 @@ def comparability_wizard() -> None:
     if current_step == 3:
         st.subheader("第4步：独立交易区间确定")
         st.markdown("分析筛选出的可比公司的盈利能力，确定独立交易区间。")
+
+        # Back button
+        if st.button("⬅️ 上一步 / Previous", key="back_to_3"):
+            st.session_state.wiz_current_tab = 2
+            st.rerun()
 
         # Use filtered data or full dataset
         companies_df = load_mock_companies()
