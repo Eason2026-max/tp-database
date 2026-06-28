@@ -156,16 +156,33 @@ except ImportError:
 def get_db_engine() -> Optional[Any]:
     """Create SQLAlchemy engine for PostgreSQL connection.
 
+    Uses connection pooling optimized for Supabase free tier (max 60 connections).
     Returns None if connection fails, in which case mock data is used.
     """
     try:
         from sqlalchemy import create_engine, text
+        from urllib.parse import quote_plus
+
+        # URL-encode password to handle special characters
+        encoded_password = quote_plus(str(DB_CONFIG['password']))
+        encoded_user = quote_plus(str(DB_CONFIG['user']))
 
         conn_str = (
-            f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}"
+            f"postgresql://{encoded_user}:{encoded_password}"
             f"@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
         )
-        engine = create_engine(conn_str, pool_pre_ping=True)
+        engine = create_engine(
+            conn_str,
+            pool_pre_ping=True,          # Check connection before use
+            pool_size=5,                  # Small pool for free tier
+            max_overflow=3,               # Allow 3 extra connections
+            pool_timeout=30,              # Wait max 30s for connection
+            pool_recycle=1800,            # Recycle connections every 30 min
+            connect_args={
+                "connect_timeout": 10,    # 10s connection timeout
+                "application_name": "tp_database_app",
+            },
+        )
         # Quick connectivity test
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
@@ -182,27 +199,41 @@ def get_db_connection() -> Optional[Any]:
         return None
     try:
         return engine.connect()
-    except Exception:
+    except Exception as e:
+        st.session_state.setdefault("db_error", str(e))
         return None
 
 
-def db_query(sql: str) -> Optional[pd.DataFrame]:
-    """Execute a SQL query and return a DataFrame. Returns None if DB unavailable."""
+def db_query(sql: str, params: Optional[dict] = None) -> Optional[pd.DataFrame]:
+    """Execute a SQL query and return a DataFrame.
+
+    Args:
+        sql: SQL query string (use named params with :name for user input)
+        params: Optional dict of query parameters for parameterized queries
+
+    Returns None if DB unavailable. Errors are logged to session_state.
+    """
     engine = get_db_engine()
     if engine is None:
         return None
     try:
         from sqlalchemy import text
         with engine.connect() as conn:
-            return pd.read_sql(text(sql), conn)
-    except Exception:
+            if params:
+                return pd.read_sql(text(sql), conn, params=params)
+            else:
+                return pd.read_sql(text(sql), conn)
+    except Exception as e:
+        import logging
+        logging.warning(f"DB query failed: {e}")
+        st.session_state.setdefault("db_error", str(e)[:200])
         return None
 
 
 # ============== Data Loaders (real DB with mock fallback) ==============
 
 
-@st.cache_data(ttl=60, max_entries=1)
+@st.cache_data(ttl=300, max_entries=10)
 def load_countries_data_v2() -> pd.DataFrame:
     """Load country-level data for the global map and KPIs from the database."""
     df = db_query("""
@@ -232,15 +263,18 @@ def load_countries_data_v2() -> pd.DataFrame:
         ORDER BY c.country_name
     """)
     if df is not None and not df.empty:
-        # Taiwan is an inseparable part of China — always mirror mainland China's data
+        # Taiwan is an inseparable part of China — mirror CHN data for TWN
+        # Keep both rows for map coloring (Plotly needs both CHN and TWN iso codes)
+        # But display as one entry in dropdowns
         chn_row = df[df["iso_code"] == "CHN"]
         if not chn_row.empty:
-            # Plotly natural earth draws Taiwan as a separate shape needing TWN code to color it
             twn_row = chn_row.iloc[0].copy()
             twn_row["iso_code"] = "TWN"
             twn_row["country"] = "Taiwan (China)"
             df = df[df["iso_code"] != "TWN"]  # remove existing TWN if any
             df = pd.concat([df, pd.DataFrame([twn_row])], ignore_index=True)
+        # Normalize country names: treat "Taiwan (China)" as "China" for selection
+        df["display_name"] = df["country"].replace({"Taiwan (China)": "China"})
         return df
     # Fallback mock data
     data = [
@@ -730,7 +764,7 @@ def global_data_portal() -> None:
     # Search + Help
     c1, c2 = st.columns([4, 1])
     with c1:
-        search_term = st.text_input("搜索国家、行业或公司", placeholder="例如：中国 制造业...")
+        search_term = st.text_input("搜索国家、行业或公司 / Search", placeholder="例如：中国 制造业 / e.g., China manufacturing...")
     with c2:
         st.write("")
         st.write("")
@@ -768,11 +802,11 @@ def global_data_portal() -> None:
 
     kpi_cols = st.columns(5)
     kpis = [
-        ("Global Comparables", f"{total_comparables:,}", "Total comparable companies"),
-        ("Countries", f"{total_countries}", "Countries covered"),
-        ("Industries", f"{total_industries}", "Industry segments"),
-        ("Active MAP Cases", f"{active_map_cases}", "Mutual Agreement Procedures"),
-        ("Developing Country Coverage", f"{dev_coverage}%", f"{dev_countries} developing countries"),
+        ("可比公司 / Global Comparables", f"{total_comparables:,}", "Total comparable companies"),
+        ("覆盖国家 / Countries", f"{total_countries}", "Countries covered"),
+        ("行业 / Industries", f"{total_industries}", "Industry segments"),
+        ("MAP案件 / Active MAP", f"{active_map_cases}", "Mutual Agreement Procedures"),
+        ("发展中国家覆盖 / Developing Coverage", f"{dev_coverage}%", f"{dev_countries} developing countries"),
     ]
     for col, (label, value, help_text) in zip(kpi_cols, kpis):
         with col:
@@ -792,13 +826,13 @@ def global_data_portal() -> None:
     map_col, feed_col = st.columns([3, 1])
 
     with map_col:
-        st.subheader("Global Data Coverage Map")
+        st.subheader("全球数据覆盖地图 / Global Data Coverage Map")
 
         # Color mapping
         df["color_label"] = df["comparables_count"].apply(
-            lambda x: "High (>50)" if x >= 50 else ("Medium (10-50)" if x >= 10 else "Low (<10)")
+            lambda x: "多(>50) / High" if x >= 50 else ("中(10-50) / Medium" if x >= 10 else "少(<10) / Low")
         )
-        color_map = {"High (>50)": ACCENT_GREEN, "Medium (10-50)": ACCENT_YELLOW, "Low (<10)": ACCENT_RED}
+        color_map = {"多(>50) / High": ACCENT_GREEN, "中(10-50) / Medium": ACCENT_YELLOW, "少(<10) / Low": ACCENT_RED}
 
         fig = px.choropleth(
             df,
@@ -815,12 +849,12 @@ def global_data_portal() -> None:
                 "region": True,
             },
             labels={
-                "comparables_count": "Comparables",
-                "last_updated": "Last Updated",
-                "industries_count": "Industries",
-                "map_cases": "MAP Cases",
-                "region": "Region",
-                "color_label": "Data Level",
+                "comparables_count": "可比公司数 / Companies",
+                "last_updated": "最后更新 / Last Updated",
+                "industries_count": "行业数 / Industries",
+                "map_cases": "MAP案件 / MAP Cases",
+                "region": "地区 / Region",
+                "color_label": "数据量 / Data Level",
             },
             projection="natural earth",
             height=500,
@@ -833,7 +867,7 @@ def global_data_portal() -> None:
         st.plotly_chart(fig, use_container_width=True)
 
     with feed_col:
-        st.subheader("Recent Data Updates")
+        st.subheader("最新数据动态 / Recent Data Updates")
         updates = load_recent_updates()
         for upd in updates[:7]:
             icon = {"upload": "📤", "update": "🔄", "policy": "📋"}.get(upd["type"], "•")
@@ -845,11 +879,21 @@ def global_data_portal() -> None:
     # ===== Country Detail Panel =====
     st.markdown("---")
     st.subheader("🌍 国家详情 / Country Detail")
-    country_options = ["— 选择国家 / Select a country —"] + sorted(df["country"].unique().tolist())
+    # Use display_name for deduplicated list (China = CHN + TWN as one entry)
+    if "display_name" in df.columns:
+        display_names = sorted(df["display_name"].unique().tolist())
+    else:
+        display_names = sorted(df["country"].unique().tolist())
+    country_options = ["— 选择国家 / Select a country —"] + display_names
     sel_country = st.selectbox("选择国家查看详情 / Select country", country_options,
                                help="点击选择国家，查看可比公司、政策等详情")
     if sel_country != country_options[0]:
-        country_code = df[df["country"] == sel_country]["iso_code"].iloc[0] if "iso_code" in df.columns else ""
+        # Match by display_name — get all rows for this country (CHN + TWN)
+        if "display_name" in df.columns:
+            country_rows = df[df["display_name"] == sel_country]
+        else:
+            country_rows = df[df["country"] == sel_country]
+        country_code = country_rows["iso_code"].iloc[0] if not country_rows.empty else ""
         render_country_detail(sel_country, country_code)
 
     # ===== Export =====
@@ -883,7 +927,7 @@ def global_data_portal() -> None:
     )
 
     # Regional breakdown
-    st.subheader("Regional Data Distribution")
+    st.subheader("地区数据分布 / Regional Data Distribution")
     region_summary = df.groupby("region").agg(
         countries=("country", "count"),
         total_comparables=("comparables_count", "sum"),
@@ -3108,10 +3152,14 @@ def industry_benchmark() -> None:
 
 def render_country_detail(country_name: str, country_code: str) -> None:
     """Render a country detail panel with companies, policies, and disputes."""
-    st.markdown(f"### 🇺🇳 {country_name} / {country_code}")
+    st.markdown(f"### 🌍 {country_name} / {country_code}")
 
     companies_df = load_mock_companies()
-    country_data = companies_df[companies_df['country'] == country_name]
+    # Match by country name — also check if "China" should match "Taiwan (China)" entries
+    if country_name == "China":
+        country_data = companies_df[companies_df['country'].isin(["China", "Taiwan (China)"])]
+    else:
+        country_data = companies_df[companies_df['country'] == country_name]
 
     detail_col1, detail_col2, detail_col3, detail_col4 = st.columns(4)
     with detail_col1:
