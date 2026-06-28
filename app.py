@@ -1016,15 +1016,24 @@ def comparability_wizard() -> None:
         st.session_state.wiz_current_tab = 0
 
     tab_labels = [
-        "第1步：描述交易 / Step 1: Transaction",
-        "第2步：筛选可比 / Step 2: Screen",
-        "第3步：可比性调整 / Step 3: Adjust",
-        "第4步：独立交易区间 / Step 4: AL Range",
+        "第1步：描述交易 / Step 1",
+        "第2步：筛选可比 / Step 2",
+        "第3步：可比性调整 / Step 3",
+        "第4步：独立交易区间 / Step 4",
     ]
-    tabs = st.tabs(tab_labels)
+    current_step = st.session_state.get("wiz_current_tab", 0)
+
+    # Show step navigation bar
+    step_cols = st.columns(4)
+    for i, (col, label) in enumerate(zip(step_cols, tab_labels)):
+        with col:
+            if i == current_step:
+                st.markdown(f"**👉 {label}**")
+            else:
+                st.markdown(f"<span style='color:#999'>{label}</span>", unsafe_allow_html=True)
 
     # ========== Step 1 ==========
-    with tabs[0]:
+    if current_step == 0:
         st.subheader("第1步：描述关联交易 / Step 1: Describe the Controlled Transaction")
         st.markdown("请提供你要分析的关联交易的基本信息。 / Provide details about the transaction you are analyzing.")
 
@@ -1127,7 +1136,7 @@ def comparability_wizard() -> None:
             st.rerun()
 
     # ========== Step 2 ==========
-    with tabs[1]:
+    if current_step == 1:
         st.subheader("第2步：筛选可比公司")
         st.markdown("设置筛选条件，从数据库中找到与你的交易可比的公司。")
 
@@ -1286,7 +1295,7 @@ def comparability_wizard() -> None:
             st.warning("没有公司符合筛选条件，请放宽一些筛选标准。")
 
     # ========== Step 3 ==========
-    with tabs[2]:
+    if current_step == 2:
         st.subheader("第3步：可比性调整")
         st.markdown("对筛选出的可比公司进行调整，使其与被测试方更具可比性。")
 
@@ -1356,7 +1365,7 @@ def comparability_wizard() -> None:
             st.metric("应用调整", f"{adj_magnitude:.2f}%")
 
     # ========== Step 4 ==========
-    with tabs[3]:
+    if current_step == 3:
         st.subheader("第4步：独立交易区间确定")
         st.markdown("分析筛选出的可比公司的盈利能力，确定独立交易区间。")
 
@@ -2336,15 +2345,15 @@ def map_apa_tracker() -> None:
 
     # Efficiency metrics
     st.markdown("---")
-    st.subheader("Efficiency Indicators")
+    st.subheader("效率指标 / Efficiency Indicators")
 
     eff_col1, eff_col2, eff_col3 = st.columns(3)
     with eff_col1:
         resolution_rate = len(cases_df[cases_df["status"] == "Resolved"]) / max(len(cases_df), 1) * 100
         fig_gauge = go.Figure(go.Indicator(
-            mode="gauge+number+delta",
-            value=resolution_rate,
-            title={"text": "Resolution Rate (%)"},
+            mode="gauge+number",
+            value=round(resolution_rate, 1),
+            title={"text": "解决率 / Resolution Rate (%)"},
             gauge={
                 "axis": {"range": [0, 100]},
                 "bar": {"color": ACCENT_GREEN},
@@ -2359,8 +2368,8 @@ def map_apa_tracker() -> None:
                     "value": 50,
                 },
             },
-            height=250,
         ))
+        fig_gauge.update_layout(height=250)
         st.plotly_chart(fig_gauge, use_container_width=True)
 
     with eff_col2:
