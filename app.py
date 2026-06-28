@@ -4,7 +4,7 @@ International Transfer Pricing Comparability Database
 A Streamlit-based frontend application for the International Tax Cooperation
 Framework Convention's global transfer pricing comparability analysis database.
 
-Helps developing country tax officials access comparable data and conduct
+Helps developing economy tax officials access comparable data and conduct
 transfer pricing analyses under Articles 5 (Fair Distribution of Taxing Rights)
 and 11 (Capacity Building).
 
@@ -748,9 +748,9 @@ def global_data_portal() -> None:
     st.markdown("""
     <div class='info-bar'>
     💡 <b>本页功能说明 / Page Guide:</b><br>
-    <b>中文：</b>这是数据库的「首页」，展示全球各国可比数据的总体情况。<br>
+    <b>中文：</b>这是数据库的「首页」，展示全球各经济体可比数据的总体情况。<br>
     &nbsp;&nbsp;• <b>世界地图</b>：颜色越绿表示该国有更多可比公司数据，红色表示数据较少<br>
-    &nbsp;&nbsp;• <b>关键指标卡片</b>：显示全球数据总量、覆盖国家数等核心数字<br>
+    &nbsp;&nbsp;• <b>关键指标卡片</b>：显示全球数据总量、覆盖经济体数等核心数字<br>
     &nbsp;&nbsp;• <b>数据分布</b>：按地区和收入水平分组展示数据覆盖情况<br>
     <b>English:</b> This is the database homepage, showing the overall comparability data coverage across countries.<br>
     &nbsp;&nbsp;• <b>World Map</b>: Greener = more comparable company data; Red = limited data<br>
@@ -764,7 +764,7 @@ def global_data_portal() -> None:
     # Search + Help
     c1, c2 = st.columns([4, 1])
     with c1:
-        search_term = st.text_input("搜索国家、行业或公司 / Search", placeholder="例如：中国 制造业 / e.g., China manufacturing...")
+        search_term = st.text_input("搜索经济体、行业或公司 / Search", placeholder="例如：中国 制造业 / e.g., China manufacturing...")
     with c2:
         st.write("")
         st.write("")
@@ -800,13 +800,12 @@ def global_data_portal() -> None:
     dev_countries = len(df[df["developing"] == True])
     dev_coverage = round(dev_countries / total_countries * 100, 1) if total_countries > 0 else 0
 
-    kpi_cols = st.columns(5)
+    kpi_cols = st.columns(4)
     kpis = [
         ("可比公司 / Global Comparables", f"{total_comparables:,}", "Total comparable companies"),
-        ("覆盖国家 / Countries", f"{total_countries}", "Countries covered"),
+        ("覆盖经济体 / Economies", f"{total_countries}", "Economies covered"),
         ("行业 / Industries", f"{total_industries}", "Industry segments"),
         ("MAP案件 / Active MAP", f"{active_map_cases}", "Mutual Agreement Procedures"),
-        ("发展中国家覆盖 / Developing Coverage", f"{dev_coverage}%", f"{dev_countries} developing countries"),
     ]
     for col, (label, value, help_text) in zip(kpi_cols, kpis):
         with col:
@@ -878,14 +877,14 @@ def global_data_portal() -> None:
 
     # ===== Country Detail Panel =====
     st.markdown("---")
-    st.subheader("🌍 国家详情 / Country Detail")
+    st.subheader("🌍 经济体详情 / Economy Detail")
     # Use display_name for deduplicated list (China = CHN + TWN as one entry)
     if "display_name" in df.columns:
         display_names = sorted(df["display_name"].unique().tolist())
     else:
         display_names = sorted(df["country"].unique().tolist())
-    country_options = ["— 选择国家 / Select a country —"] + display_names
-    sel_country = st.selectbox("选择国家查看详情 / Select country", country_options,
+    country_options = ["— 选择经济体 / Select an economy —"] + display_names
+    sel_country = st.selectbox("选择经济体查看详情 / Select economy", country_options,
                                help="点击选择国家，查看可比公司、政策等详情")
     if sel_country != country_options[0]:
         # Match by display_name — get all rows for this country (CHN + TWN)
@@ -918,7 +917,7 @@ def global_data_portal() -> None:
             帮助发展中国家获取高质量可比数据进行转让定价分析，支持<b>第5条</b>（公平分配征税权）和<b>第11条</b>（能力建设）。
             各成员国在自愿基础上贡献匿名化的可比公司数据，确保数据主权的同时促进国际税收合作。<br/><br/>
             The ITP Comparability Database supports the implementation of the
-            <b>UN International Tax Cooperation Framework Convention</b>. It enables developing countries
+            <b>UN International Tax Cooperation Framework Convention</b>. It enables developing economies
             to access quality comparability data for transfer pricing analyses, supporting
             <b>Article 5</b> (Fair Distribution of Taxing Rights) and <b>Article 11</b> (Capacity Building).
         </div>
@@ -933,13 +932,13 @@ def global_data_portal() -> None:
         total_comparables=("comparables_count", "sum"),
         avg_comparables=("comparables_count", "mean"),
     ).round(1).reset_index()
-    region_summary.columns = ["Region", "Countries", "Total Comparables", "Avg per Country"]
+    region_summary.columns = ["地区 / Region", "经济体 / Economies", "Total Comparables", "平均/经济体 / Avg per Economy"]
 
     fig_bar = px.bar(
         region_summary,
-        x="Region",
+        x="地区 / Region",
         y="Total Comparables",
-        color="Countries",
+        color="经济体 / Economies",
         text="Total Comparables",
         color_continuous_scale="Blues",
         height=350,
@@ -1164,7 +1163,7 @@ def comparability_wizard() -> None:
                     )
             with dbc2:
                 sel_countries = st.multiselect(
-                    "地理范围",
+                    "经济体范围",
                     sorted(companies_df["country"].unique().tolist()),
                     default=[],
                     help="选择一个或多个国家（不选则全部）",
@@ -1264,7 +1263,7 @@ def comparability_wizard() -> None:
             if st.button("保存第2步，进入第3步 / Save & Next", key="save_step2", type="primary"):
                 st.session_state.wiz_step2 = {
                     "Industry": sel_industry,
-                    "Countries": ", ".join(sel_countries) if sel_countries else "All",
+                    "经济体 / Economies": ", ".join(sel_countries) if sel_countries else "All",
                     "FY Range": f"{fy_range[0]}-{fy_range[1]}",
                     "Revenue Range": f"${rev_min:.1f}M - ${rev_max:.1f}M",
                     "Net Assets Range": f"${asset_min:.1f}M - ${asset_max:.1f}M",
@@ -1629,7 +1628,7 @@ def extractive_pricing() -> None:
 
 def country_policy() -> None:
     """Page 4: Country Policy Lookup - National TP regulation and treaty information."""
-    st.markdown("<div class='main-header'>📋 各国转让定价政策查询 / Country Policy Lookup</div>", unsafe_allow_html=True)
+    st.markdown("<div class='main-header'>📋 各经济体转让定价政策查询 / Economy Policy Lookup</div>", unsafe_allow_html=True)
     st.markdown(
         "<div class='sub-header'>查询各国的转让定价法规、文档要求和条约网络 / National TP Regulations, Documentation & Treaty Networks</div>",
         unsafe_allow_html=True,
@@ -1638,12 +1637,12 @@ def country_policy() -> None:
     st.markdown("""
     <div class='info-bar'>
     💡 <b>本页功能说明 / Page Guide:</b><br>
-    <b>中文：</b>查询各国转让定价政策的「百科全书」。<br>
+    <b>中文：</b>查询各经济体转让定价政策的「百科全书」。<br>
     &nbsp;&nbsp;• <b>法规要求</b>：各国对转让定价文档的要求<br>
     &nbsp;&nbsp;• <b>争议解决机制</b>：APA、MAP、仲裁机制<br>
     &nbsp;&nbsp;• <b>安全港规则</b>：简化合规的安全港规定<br>
     <b>English:</b> Encyclopedia of national transfer pricing policies.<br>
-    &nbsp;&nbsp;• <b>Regulations</b>: TP documentation requirements by country<br>
+    &nbsp;&nbsp;• <b>Regulations</b>: TP documentation requirements by economy<br>
     &nbsp;&nbsp;• <b>Dispute Resolution</b>: APA, MAP, and arbitration mechanisms<br>
     &nbsp;&nbsp;• <b>Safe Harbour</b>: Simplified compliance rules<br>
     <br>
@@ -1652,11 +1651,11 @@ def country_policy() -> None:
     </div>
     """, unsafe_allow_html=True)
 
-    if st.button("Help", key="help_policy", help="Guidance on country policy lookup"):
+    if st.button("Help", key="help_policy", help="Guidance on economy policy lookup"):
         st.info("""
-        **Country Policy Lookup Help**
+        **Economy Policy Lookup Help**
 
-        Search for a country to view its transfer pricing policy framework:
+        Search for an economy to view its transfer pricing policy framework:
         - TP regulations and legislative basis
         - Documentation requirements (Local File, Master File, CbCR)
         - Safe harbor rules and thresholds
@@ -1673,9 +1672,9 @@ def country_policy() -> None:
     search_col, compare_toggle_col = st.columns([3, 1])
     with search_col:
         selected_country = st.selectbox(
-            "Select Country",
+            "Select Economy",
             [""] + sorted(df_policies["country"].tolist()),
-            help="Choose a country to view its TP policy details",
+            help="Choose an economy to view its TP policy details",
         )
     with compare_toggle_col:
         compare_mode = st.toggle("Compare Mode", help="Enable side-by-side comparison of two countries")
@@ -1683,9 +1682,9 @@ def country_policy() -> None:
     if compare_mode:
         col_a, col_b = st.columns(2)
         with col_a:
-            country_a = st.selectbox("Country A", [""] + sorted(df_policies["country"].tolist()), key="country_a")
+            country_a = st.selectbox("经济体A / Economy A", [""] + sorted(df_policies["country"].tolist()), key="country_a")
         with col_b:
-            country_b = st.selectbox("Country B", [""] + sorted(df_policies["country"].tolist()), key="country_b")
+            country_b = st.selectbox("经济体B / Economy B", [""] + sorted(df_policies["country"].tolist()), key="country_b")
 
         if country_a and country_b:
             row_a = df_policies[df_policies["country"] == country_a].iloc[0]
@@ -1727,7 +1726,7 @@ def country_policy() -> None:
             ))
             fig_comp.update_layout(
                 barmode="group",
-                title=f"Comparison: {country_a} vs {country_b}",
+                title=f"对比: {country_a} vs {country_b} / Comparison",
                 height=350,
             )
             st.plotly_chart(fig_comp, use_container_width=True)
@@ -1778,7 +1777,7 @@ def country_policy() -> None:
         summary_text = (
             f"**{selected_country}** has {'comprehensive' if row['has_tp_regulations'] else 'limited'} "
             f"transfer pricing regulations requiring **{row['documentation_req']}**. "
-            f"The country maintains **{row['treaty_count']} tax treaties** providing MAP access, "
+            f"The economy maintains **{row['treaty_count']} tax treaties** providing MAP access, "
             f"and {'operates' if row['apa_available'] else 'does not yet operate'} an APA program. "
             f"Information exchange is conducted through **{row['exchange_mechanism']}**. "
             f"Safe harbor provisions are {'available' if row['safe_harbor'] else 'not currently available'}."
@@ -1816,7 +1815,7 @@ def country_policy() -> None:
         st.plotly_chart(fig_treaty, use_container_width=True)
     else:
         # Show all countries overview table
-        st.info("Select a country above to view detailed policy information, or enable Compare Mode.")
+        st.info("Select an economy above to view detailed policy information, or enable Compare Mode.")
         st.subheader("Countries Overview")
         display_df = df_policies.copy()
         display_df["TP Regs"] = display_df["has_tp_regulations"].apply(lambda x: "Yes" if x else "No")
@@ -1842,17 +1841,17 @@ def data_contribution() -> None:
     st.markdown("""
     <div class='info-bar'>
     💡 <b>本页功能说明 / Page Guide:</b><br>
-    <b>中文：</b>管理各国向数据库贡献数据的「工作台」，包含三大功能：<br>
+    <b>中文：</b>管理各经济体向数据库贡献数据的「工作台」，包含三大功能：<br>
     &nbsp;&nbsp;• <b>📥 导入模板下载</b>：提供标准化CSV模板，确保数据格式统一<br>
     &nbsp;&nbsp;• <b>🔐 密级分层管理</b>：Tier 1/2/3 三级数据分类，不同密级有不同访问权限和用途<br>
     &nbsp;&nbsp;• <b>📊 贡献统计</b>：查看各国的数据贡献排名、密级分布和进度<br>
-    <b>English:</b> Workspace for country data contributions with three core functions:<br>
+    <b>English:</b> Workspace for economy data contributions with three core functions:<br>
     &nbsp;&nbsp;• <b>📥 Import Template</b>: Standardized CSV template for consistent data format<br>
     &nbsp;&nbsp;• <b>🔐 Tiered Classification</b>: Tier 1/2/3 data classification with differentiated access<br>
-    &nbsp;&nbsp;• <b>📊 Contribution Stats</b>: Country rankings, tier distribution, and progress<br>
+    &nbsp;&nbsp;• <b>📊 Contribution Stats</b>: Economy rankings, tier distribution, and progress<br>
     <br>
     <i>依据 / Reference: 联合国国际税收合作框架公约第11条（能力建设）<br>
-    UN Framework Convention Art. 11 (Capacity Building) — Data sharing to support developing countries</i>
+    UN Framework Convention Art. 11 (Capacity Building) — Data sharing to support developing economies</i>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1906,7 +1905,7 @@ def data_contribution() -> None:
                     template_data.to_excel(writer, sheet_name='Data', index=False)
                     field_guide = pd.DataFrame({
                         '字段名 Field': ['company_id','company_name','country_code','industry_code_isic','revenue','net_worth','fiscal_year','data_source','data_tier'],
-                        '说明 Description': ['公司ID / Company ID','公司名称 / Company name','国家代码 / Country code','ISIC行业代码 / ISIC code','年收入 / Revenue','净资产 / Net worth','财政年度 / Fiscal year','数据来源 / Data source','密级 / Tier'],
+                        '说明 Description': ['公司ID / Company ID','公司名称 / Company name','经济体代码 / Economy code','ISIC行业代码 / ISIC code','年收入 / Revenue','净资产 / Net worth','财政年度 / Fiscal year','数据来源 / Data source','密级 / Tier'],
                         '必填 / Required': ['✅','✅','✅','✅','✅','✅','✅','✅','✅'],
                     })
                     field_guide.to_excel(writer, sheet_name='Field Guide', index=False)
@@ -1997,7 +1996,7 @@ def data_contribution() -> None:
         declaration = st.checkbox(
             "本人确认上传数据已匿名化处理，贡献国已授权在联合国国际税收合作框架公约下共享。"
             "数据不含个人身份信息或可识别单一纳税人的商业敏感信息。\n\n"
-            "I confirm that the data is anonymized and the contributing country has authorized "
+            "I confirm that the data is anonymized and the contributing economy has authorized "
             "its sharing under the UN Framework Convention. The data does not contain personally "
             "identifiable information or commercially sensitive information.",
             help="必填项 / Required",
@@ -2013,7 +2012,7 @@ def data_contribution() -> None:
             with val_col1:
                 st.metric("必填字段完整率 / Required Fields", "100%", "✅")
             with val_col2:
-                st.metric("国家代码有效 / Valid Country Codes", "98%", "✅")
+                st.metric("经济体代码有效 / Valid Economy Codes", "98%", "✅")
             with val_col3:
                 st.metric("数据合理性 / Reasonableness", "95%", "✅")
 
@@ -2117,7 +2116,7 @@ def data_contribution() -> None:
 
         # Tier distribution by country
         st.markdown("---")
-        st.markdown("##### 🌍 各密级数据国家分布 / Tier Distribution by Country")
+        st.markdown("##### 🌍 各密级数据经济体分布 / Tier Distribution by Economy")
         tier_country_df = db_query("""
             SELECT c.country_name, cc.data_tier, COUNT(*) as cnt
             FROM comparable_companies cc
@@ -2130,7 +2129,7 @@ def data_contribution() -> None:
             fig_tier = px.bar(
                 tier_country_df, x='country_name', y='cnt', color='data_tier',
                 title='Top 20 Countries by Data Tier / 数据量前20国家的密级分布',
-                labels={'country_name': '国家 / Country', 'cnt': '公司数 / Companies', 'data_tier': '密级 / Tier'},
+                labels={'country_name': '经济体 / Economy', 'cnt': '公司数 / Companies', 'data_tier': '密级 / Tier'},
                 height=450,
                 color_discrete_map={'Tier1': '#28a745', 'Tier2': '#ffc107', 'Tier3': '#fd7e14'},
             )
@@ -2174,9 +2173,9 @@ def data_contribution() -> None:
         st.plotly_chart(fig_trend, use_container_width=True)
 
         # Top contributors
-        st.markdown("#### 🏆 贡献最多国家 (2025) / Top Contributing Countries")
+        st.markdown("#### 🏆 贡献最多经济体 (2025) / Top Contributing Countries")
         contributors = pd.DataFrame({
-            "国家 / Country": ["India", "South Africa", "Brazil", "China", "Kenya", "Nigeria", "Mexico", "Indonesia"],
+            "经济体 / Economy": ["India", "South Africa", "Brazil", "China", "Kenya", "Nigeria", "Mexico", "Indonesia"],
             "数据集 / Datasets": [180, 145, 132, 128, 95, 88, 82, 75],
             "质量评分 / Quality Score": [95, 92, 90, 94, 88, 85, 91, 87],
             "Tier1占比 / Tier1 %": ["62%", "55%", "48%", "70%", "35%", "28%", "52%", "40%"],
@@ -2190,7 +2189,7 @@ def map_apa_tracker() -> None:
     """Page 6: MAP/APA Case Tracker - Monitor mutual agreement and advance pricing agreement cases."""
     st.markdown("<div class='main-header'>⚖️ 争议解决追踪器 / MAP & APA Tracker</div>", unsafe_allow_html=True)
     st.markdown(
-        "<div class='sub-header'>追踪各国相互协商程序和预约定价安排 / Track MAP and APA Cases Across Jurisdictions</div>",
+        "<div class='sub-header'>追踪各经济体相互协商程序和预约定价安排 / Track MAP and APA Cases Across Jurisdictions</div>",
         unsafe_allow_html=True,
     )
 
@@ -2215,7 +2214,7 @@ def map_apa_tracker() -> None:
         st.info("""
         **争议解决追踪器 — 使用指南 / MAP Tracker Guide**
 
-        **中文：** 本页追踪各国相互协商程序(MAP)和预约定价安排(APA)案件。
+        **中文：** 本页追踪各经济体相互协商程序(MAP)和预约定价安排(APA)案件。
         - **MAP**：两国税务部门协商解决双重征税争议
         - **APA**：事前与税务机关约定转让定价方法，预防争议
         - 颜色含义：🟡进行中 / 🟢已解决 / 🔵待处理 / 🔴未达成协议
@@ -2271,7 +2270,7 @@ def map_apa_tracker() -> None:
     if len(filtered) > 0:
         display_df = filtered[["case_id", "case_type", "taxpayer", "country_a", "country_b",
                                "issue", "status", "start_date", "duration_days", "amount_disputed_musd"]].copy()
-        display_df.columns = ["案件号/ID", "类型/Type", "纳税人/Taxpayer", "国家A/Country A", "国家B/Country B",
+        display_df.columns = ["案件号/ID", "类型/Type", "纳税人/Taxpayer", "经济体A/Economy A", "经济体B/Economy B",
                               "争议事项/Issue", "状态/Status", "起始日/Start", "时长(天)/Duration", "争议额($M)/Disputed"]
 
         st.dataframe(
@@ -2410,7 +2409,7 @@ def digital_economy() -> None:
     &nbsp;&nbsp;• <b>收入vs利润率分析</b>：气泡图展示不同平台类型的定价特征<br>
     &nbsp;&nbsp;• <b>数字强度指标</b>：衡量企业数字化程度的综合指标<br>
     <b>English:</b> Specialized tools for digital economy transfer pricing analysis.<br>
-    &nbsp;&nbsp;• <b>Data Filtering</b>: Screen digital service companies by country, margin, fiscal year<br>
+    &nbsp;&nbsp;• <b>Data Filtering</b>: Screen digital service companies by economy, margin, fiscal year<br>
     &nbsp;&nbsp;• <b>Revenue vs Margin</b>: Bubble chart showing pricing characteristics by platform type<br>
     &nbsp;&nbsp;• <b>Digital Intensity</b>: Composite metric for digitalization level<br>
     <br>
@@ -2466,10 +2465,10 @@ def digital_economy() -> None:
     fcol1, fcol2, fcol3 = st.columns(3)
     with fcol1:
         dig_countries = st.multiselect(
-            "Countries",
+            "经济体 / Economies",
             sorted(digital_df["country"].unique().tolist()),
             default=[],
-            help="Filter by country of the comparable company",
+            help="Filter by economy of the comparable company",
         )
     with fcol2:
         margin_range = st.slider(
@@ -2599,8 +2598,8 @@ def digital_economy() -> None:
                 y="country",
                 x="avg_margin",
                 orientation="h",
-                title="Average Operating Margin by Country",
-                labels={"avg_margin": "Avg Operating Margin", "country": "Country"},
+                title="Average Operating Margin by Economy",
+                labels={"avg_margin": "平均营业利润率 / Avg Operating Margin", "country": "经济体 / Economy"},
                 height=350,
                 color="avg_margin",
                 color_continuous_scale="Blues",
@@ -2685,7 +2684,7 @@ def risk_assessment() -> None:
         with input_col1:
             st.markdown("##### 企业信息 / Company Info")
             company_name = st.text_input("企业名称 / Company Name", value="MNE Group A", key="ra_company")
-            country = st.selectbox("所在国 / Jurisdiction", ["China", "India", "Brazil", "South Africa", "Kenya", "Nigeria", "Other"], key="ra_country")
+            country = st.selectbox("所在经济体 / Jurisdiction", ["China", "India", "Brazil", "South Africa", "Kenya", "Nigeria", "Other"], key="ra_country")
             industry = st.selectbox("行业 / Industry", ["Manufacturing", "Services", "Digital/Tech", "Pharmaceuticals", "Mining", "Financial Services"], key="ra_industry")
 
         with input_col2:
@@ -2854,7 +2853,7 @@ def risk_assessment() -> None:
 
         **English:** Analyze alignment between MNE global profit allocation and economic substance
         (employees, assets, revenue). Profit concentration in low-tax jurisdictions while economic
-        activity occurs in developing countries may indicate profit shifting.
+        activity occurs in developing economies may indicate profit shifting.
         """)
 
         # Simulated CbC data
@@ -3000,11 +2999,11 @@ def industry_benchmark() -> None:
         st.warning("⚠️ 无符合条件的数据，请调整筛选。/ No data matches the selected criteria.")
         return
 
-    st.markdown(f"**符合条件：{len(filtered)} 家公司 / {len(filtered['country'].unique())} 个国家**")
+    st.markdown(f"**符合条件：{len(filtered)} 家公司 / {len(filtered['country'].unique())} 个经济体**")
 
-    # ===== Section 1: Industry Benchmark by Country =====
+    # ===== Section 1: Industry Benchmark by Economy =====
     st.markdown("---")
-    st.subheader("📊 各国利润率基准 / Profitability Benchmark by Country")
+    st.subheader("📊 各经济体利润率基准 / Profitability Benchmark by Economy")
 
     country_benchmark = filtered.groupby('country').agg(
         companies=('company_id', 'count'),
@@ -3019,8 +3018,8 @@ def industry_benchmark() -> None:
         filtered[filtered['country'].isin(country_benchmark['country'].head(15))],
         x='country', y='operating_margin',
         color='country',
-        title=f'{section_labels[sel_section_idx]} — 各国营业利润率分布 / Operating Margin by Country',
-        labels={'operating_margin': '营业利润率 / Operating Margin', 'country': '国家 / Country'},
+        title=f'{section_labels[sel_section_idx]} — 各经济体营业利润率分布 / Operating Margin by Economy',
+        labels={'operating_margin': '营业利润率 / Operating Margin', 'country': '经济体 / Economy'},
         height=450,
     )
     fig_box.update_layout(showlegend=False, margin=dict(l=0, r=0, t=40, b=0))
@@ -3029,7 +3028,7 @@ def industry_benchmark() -> None:
     # Benchmark table with export
     st.markdown("##### 📋 基准数据表 / Benchmark Table")
     display_benchmark = country_benchmark.copy()
-    display_benchmark.columns = ['国家/Country', '公司数/Companies', '中位利润率/Median Margin',
+    display_benchmark.columns = ['经济体/Economy', '公司数/Companies', '中位利润率/Median Margin',
                                  'Q1', 'Q3', '中位ROE/Median ROE']
     display_benchmark['中位利润率/Median Margin'] = (display_benchmark['中位利润率/Median Margin'] * 100).round(2).astype(str) + '%'
     display_benchmark['Q1'] = (display_benchmark['Q1'] * 100).round(2).astype(str) + '%'
@@ -3421,15 +3420,15 @@ def customs_valuation() -> None:
 
         # Country distribution
         st.markdown("---")
-        st.markdown("##### 🌍 申报国分布 / Reporting Country Distribution")
+        st.markdown("##### 🌍 申报经济体分布 / Reporting Economy Distribution")
         country_counts = customs_df.groupby("reporting_country_name").agg(
             records=("customs_id", "count"),
             related=("related_party_flag", "sum"),
         ).reset_index().sort_values("records", ascending=False).head(15)
         fig_country = px.bar(
             country_counts, x="reporting_country_name", y="records",
-            color="related", title="Top 15 申报国 / Top 15 Reporting Countries",
-            labels={"reporting_country_name": "国家 / Country", "records": "记录数 / Records", "related": "关联 / Related"},
+            color="related", title="Top 15 申报经济体 / Top 15 Reporting Economies",
+            labels={"reporting_country_name": "经济体 / Economy", "records": "记录数 / Records", "related": "关联 / Related"},
             height=400,
         )
         st.plotly_chart(fig_country, use_container_width=True)
@@ -3539,7 +3538,7 @@ def render_sidebar() -> str:
             "Industry Benchmark": "📈 行业基准与趋势 / Industry Benchmark",
             "Comparability Wizard": "🔍 可比性分析向导 / Comparability Wizard",
             "Extractive Pricing": "⛏️ 采掘业定价 / Extractive Pricing",
-            "Country Policy": "📋 各国政策查询 / Country Policy",
+            "Country Policy": "📋 各经济体政策 / Economy Policy",
             "Data Contribution": "📤 数据贡献管理 / Data Contribution",
             "MAP/APA Tracker": "⚖️ 争议解决追踪 / MAP & APA Tracker",
             "Digital Economy": "💻 数字经济分析 / Digital Economy",
@@ -3556,7 +3555,7 @@ def render_sidebar() -> str:
 
         This system supports the implementation of the
         **UN International Tax Cooperation Framework Convention**,
-        helping developing countries access comparable data
+        helping developing economies access comparable data
         for transfer pricing analyses.
 
         **支持条款 / Articles Supported:**
