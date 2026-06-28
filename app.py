@@ -405,11 +405,21 @@ def load_country_policies() -> pd.DataFrame:
         SELECT
             co.country_name AS country,
             cp.arm_length_principle_enshrined AS has_tp_regulations,
-            cp.tp_documentation_requirement AS documentation_req,
+            CASE
+                WHEN cp.master_file_required AND cp.local_file_required AND cp.cbc_report_required
+                THEN 'Three-tier (Master + Local + CbCR)'
+                WHEN cp.local_file_required AND cp.cbc_report_required
+                THEN 'Local File + CbCR'
+                WHEN cp.master_file_required AND cp.local_file_required
+                THEN 'Master + Local File'
+                WHEN cp.local_file_required
+                THEN 'Local File only'
+                ELSE 'Not specified'
+            END AS documentation_req,
             CASE WHEN cp.safe_harbour_type IS NOT NULL AND cp.safe_harbour_type <> '' THEN TRUE ELSE FALSE END AS safe_harbor,
             cp.total_treaties_in_force AS treaty_count,
             cp.map_cases_filed AS map_cases_2024,
-            CASE WHEN cp.apa_article <> 'Not available' THEN TRUE ELSE FALSE END AS apa_available,
+            CASE WHEN cp.apa_types_available IS NOT NULL AND cp.apa_types_available <> '' THEN TRUE ELSE FALSE END AS apa_available,
             cp.information_exchange_mechanism AS exchange_mechanism
         FROM country_policies cp
         JOIN countries co ON co.country_code = cp.country_code
