@@ -39,7 +39,7 @@ from docx.shared import Inches, Pt, RGBColor
 
 # ============== Page Configuration ==============
 st.set_page_config(
-    page_title="ITP Comparability Database",
+    page_title="国际转让定价对比数据库 / ITP Comparability Database",
     page_icon=":earth_americas:",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -47,108 +47,337 @@ st.set_page_config(
 
 # ============== Theme / Styling ==============
 PRIMARY_COLOR = "#5B92E5"  # UN Blue
+PRIMARY_DARK = "#3A6FCC"
+PRIMARY_LIGHT = "#7AB0F0"
 ACCENT_GREEN = "#27AE60"
 ACCENT_RED = "#E74C3C"
 ACCENT_YELLOW = "#F39C12"
 ACCENT_PURPLE = "#8E44AD"
+ACCENT_TEAL = "#1ABC9C"
+BG_LIGHT = "#F7F9FC"
+BG_CARD = "#FFFFFF"
+TEXT_DARK = "#2C3E50"
+TEXT_MUTED = "#7F8C8D"
+BORDER_LIGHT = "#E8ECF0"
 
 st.markdown(
     f"""
     <style>
+    /* ===== Global Typography & Background ===== */
+    .stApp {{
+        background-color: {BG_LIGHT};
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Noto Sans SC', sans-serif;
+        color: {TEXT_DARK};
+    }}
+    /* Reduce default spacing for tighter layout */
+    .stApp > header {{ background-color: transparent; }}
+    .block-container {{ padding-top: 1.5rem; padding-bottom: 2rem; max-width: 1400px; }}
+
+    /* ===== Page Main Header — gradient banner ===== */
     .main-header {{
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: {PRIMARY_COLOR};
-        margin-bottom: 0.5rem;
-    }}
-    .sub-header {{
-        font-size: 1.1rem;
-        color: #666666;
-        margin-bottom: 1.5rem;
-    }}
-    .kpi-card {{
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 10px;
-        padding: 1.2rem;
-        border-left: 4px solid {PRIMARY_COLOR};
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }}
-    .kpi-value {{
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: {PRIMARY_COLOR};
-    }}
-    .kpi-label {{
-        font-size: 0.85rem;
-        color: #666666;
-        text-transform: uppercase;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #FFFFFF;
+        background: linear-gradient(135deg, {PRIMARY_COLOR} 0%, {PRIMARY_DARK} 100%);
+        padding: 1.2rem 1.8rem;
+        border-radius: 14px;
+        margin-bottom: 0.3rem;
+        box-shadow: 0 4px 15px rgba(91, 146, 229, 0.3);
         letter-spacing: 0.5px;
     }}
-    .info-bar {{
-        background-color: #e8f2fc;
-        border-left: 4px solid {PRIMARY_COLOR};
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
+    .sub-header {{
+        font-size: 1rem;
+        color: {TEXT_MUTED};
+        margin-bottom: 1.2rem;
+        padding-left: 0.3rem;
     }}
-    .metric-good {{
-        color: {ACCENT_GREEN};
-        font-weight: 600;
+
+    /* ===== KPI Cards — modern with hover lift ===== */
+    .kpi-card {{
+        background: {BG_CARD};
+        border-radius: 14px;
+        padding: 1.3rem 1.5rem;
+        border-top: 4px solid {PRIMARY_COLOR};
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        position: relative;
+        overflow: hidden;
     }}
-    .metric-warning {{
-        color: {ACCENT_YELLOW};
-        font-weight: 600;
+    .kpi-card::before {{
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, {PRIMARY_COLOR}, {ACCENT_TEAL});
     }}
-    .metric-danger {{
-        color: {ACCENT_RED};
-        font-weight: 600;
+    .kpi-card:hover {{
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
     }}
-    .update-item {{
-        padding: 0.6rem 0;
-        border-bottom: 1px solid #e0e0e0;
-        font-size: 0.9rem;
-    }}
-    .sidebar-title {{
-        font-size: 1.1rem;
-        font-weight: 600;
+    .kpi-value {{
+        font-size: 1.9rem;
+        font-weight: 800;
         color: {PRIMARY_COLOR};
-        margin-bottom: 0.5rem;
+        line-height: 1.2;
     }}
+    .kpi-label {{
+        font-size: 0.78rem;
+        color: {TEXT_MUTED};
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-top: 0.3rem;
+    }}
+
+    /* ===== Info Bar — softer, rounded ===== */
+    .info-bar {{
+        background: linear-gradient(135deg, #EBF3FC 0%, #F5F9FF 100%);
+        border-left: 4px solid {PRIMARY_COLOR};
+        padding: 1.1rem 1.3rem;
+        border-radius: 10px;
+        margin: 0.8rem 0;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }}
+
+    /* ===== Status Colors ===== */
+    .metric-good {{ color: {ACCENT_GREEN}; font-weight: 700; }}
+    .metric-warning {{ color: {ACCENT_YELLOW}; font-weight: 700; }}
+    .metric-danger {{ color: {ACCENT_RED}; font-weight: 700; }}
+
+    /* ===== Update Feed Items ===== */
+    .update-item {{
+        padding: 0.7rem 0.8rem;
+        border-bottom: 1px solid {BORDER_LIGHT};
+        font-size: 0.85rem;
+        transition: background 0.2s;
+        border-radius: 6px;
+    }}
+    .update-item:hover {{
+        background-color: #F0F4FF;
+    }}
+
+    /* ===== Sidebar Title ===== */
+    .sidebar-title {{
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: {PRIMARY_COLOR};
+        margin-bottom: 0.4rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid {PRIMARY_COLOR};
+    }}
+
+    /* ===== Method Badge ===== */
     .method-badge {{
-        background-color: {PRIMARY_COLOR};
+        background: linear-gradient(135deg, {PRIMARY_COLOR}, {PRIMARY_DARK});
         color: white;
-        padding: 0.3rem 0.8rem;
-        border-radius: 12px;
+        padding: 0.35rem 1rem;
+        border-radius: 20px;
         font-size: 0.8rem;
-        font-weight: 500;
+        font-weight: 600;
+        display: inline-block;
     }}
+
+    /* ===== Step Navigator — visual connected steps ===== */
+    .step-nav-container {{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 1rem 0 1.5rem 0;
+        position: relative;
+    }}
+    .step-nav-item {{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }}
+    .step-nav-circle {{
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+    }}
+    .step-nav-circle.active {{
+        background: linear-gradient(135deg, {PRIMARY_COLOR}, {PRIMARY_DARK});
+        color: white;
+        box-shadow: 0 3px 12px rgba(91,146,229,0.4);
+        transform: scale(1.1);
+    }}
+    .step-nav-circle.completed {{
+        background: {ACCENT_GREEN};
+        color: white;
+    }}
+    .step-nav-circle.pending {{
+        background: #E0E6ED;
+        color: {TEXT_MUTED};
+    }}
+    .step-nav-label {{
+        font-size: 0.72rem;
+        margin-top: 0.4rem;
+        text-align: center;
+        max-width: 120px;
+        line-height: 1.3;
+    }}
+
+    /* ===== Buttons — modern, rounded ===== */
     div.stButton > button:first-child {{
-        background-color: {PRIMARY_COLOR};
+        background: linear-gradient(135deg, {PRIMARY_COLOR}, {PRIMARY_DARK});
         color: white;
         border: none;
-        border-radius: 6px;
+        border-radius: 10px;
         padding: 0.5rem 1.5rem;
-        font-weight: 500;
+        font-weight: 600;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(91,146,229,0.25);
     }}
     div.stButton > button:first-child:hover {{
-        background-color: #4a7bc8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(91,146,229,0.4);
+    }}
+    div.stButton > button:first-child:active {{
+        transform: translateY(0);
     }}
     /* Nav button styling: compact, text-left */
     div.stButton > button[kind="secondary"] {{
-        background-color: transparent;
-        color: #333;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
-        padding: 0.4rem 0.8rem;
-        font-size: 0.85rem;
+        background-color: {BG_CARD};
+        color: {TEXT_DARK};
+        border: 1px solid {BORDER_LIGHT};
+        border-radius: 8px;
+        padding: 0.45rem 0.8rem;
+        font-size: 0.82rem;
         text-align: left;
-        font-weight: 400;
+        font-weight: 500;
         transition: all 0.2s;
     }}
     div.stButton > button[kind="secondary"]:hover {{
-        background-color: #f0f4ff;
+        background-color: #EBF3FC;
         border-color: {PRIMARY_COLOR};
         color: {PRIMARY_COLOR};
+        transform: translateX(3px);
+    }}
+
+    /* ===== Dataframe / Table styling ===== */
+    .stDataFrame {{
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    }}
+    .stDataFrame table {{
+        border-radius: 10px;
+    }}
+    .stDataFrame thead th {{
+        background-color: {PRIMARY_COLOR} !important;
+        color: white !important;
+        font-weight: 600 !important;
+    }}
+    .stDataFrame tbody tr:nth-child(even) {{
+        background-color: #F7F9FC;
+    }}
+    .stDataFrame tbody tr:hover {{
+        background-color: #EBF3FC !important;
+    }}
+
+    /* ===== Expander styling ===== */
+    .streamlit-expanderHeader {{
+        font-weight: 600;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }}
+    .streamlit-expanderHeader:hover {{
+        background-color: #F0F4FF;
+    }}
+
+    /* ===== Tabs styling ===== */
+    .stTabs > div[role="tablist"] {{
+        gap: 4px;
+    }}
+    .stTabs > div[role="tablist"] > button {{
+        border-radius: 8px 8px 0 0;
+        font-weight: 600;
+        font-size: 0.88rem;
+        padding: 0.5rem 1rem;
+    }}
+    .stTabs > div[role="tablist"] > button[aria-selected="true"] {{
+        color: {PRIMARY_COLOR};
+        border-bottom: 3px solid {PRIMARY_COLOR};
+    }}
+
+    /* ===== Metric cards spacing ===== */
+    [data-testid="stMetric"] {{
+        background: {BG_CARD};
+        border-radius: 10px;
+        padding: 0.8rem 1rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        border-left: 3px solid {PRIMARY_LIGHT};
+    }}
+    [data-testid="stMetric"]:hover {{
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }}
+
+    /* ===== Selectbox / Input styling ===== */
+    .stSelectbox > div > div {{
+        border-radius: 8px;
+    }}
+    .stNumberInput > div > input {{
+        border-radius: 8px;
+    }}
+
+    /* ===== Section divider ===== */
+    hr {{
+        border: none;
+        border-top: 1px solid {BORDER_LIGHT};
+        margin: 1.5rem 0;
+    }}
+
+    /* ===== Scrollbar styling ===== */
+    ::-webkit-scrollbar {{
+        width: 8px;
+        height: 8px;
+    }}
+    ::-webkit-scrollbar-track {{
+        background: {BG_LIGHT};
+    }}
+    ::-webkit-scrollbar-thumb {{
+        background: #C4CDD5;
+        border-radius: 4px;
+    }}
+    ::-webkit-scrollbar-thumb:hover {{
+        background: {PRIMARY_LIGHT};
+    }}
+
+    /* ===== Sidebar ===== */
+    section[data-testid="stSidebar"] {{
+        background-color: {BG_CARD};
+        border-right: 1px solid {BORDER_LIGHT};
+    }}
+    section[data-testid="stSidebar"] .stMarkdown {{
+        font-size: 0.9rem;
+    }}
+
+    /* ===== Alert boxes ===== */
+    .stAlert {{
+        border-radius: 10px;
+    }}
+
+    /* ===== Download button ===== */
+    .stDownloadButton > button {{
+        background: linear-gradient(135deg, {ACCENT_GREEN}, #219A52) !important;
+        border: none !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 8px rgba(39,174,96,0.25) !important;
+    }}
+    .stDownloadButton > button:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(39,174,96,0.35) !important;
     }}
     </style>
     """,
@@ -834,10 +1063,26 @@ def global_data_portal() -> None:
         unsafe_allow_html=True,
     )
 
-    # Disclaimer banner
-    st.warning("⚠️ **数据声明 / Data Disclaimer:** 本数据库中的数据为演示用模拟数据，旨在展示系统功能和转让定价分析方法论。实际分析应使用经审计的真实财务数据。\n\n"
-               "⛔ **免责声明 / Legal Disclaimer:** 本工具不构成税务建议，不能替代专业税务顾问的判断。分析结果基于用户输入的数据和参数，工具方法论存在局限性。使用者应始终参照最新OECD转让定价指南、联合国转让定价实务手册及当地税法法规进行验证。/ "
-               "This tool does NOT constitute tax advice. Results are based on user inputs and have methodological limitations. Always verify against current OECD TPG, UN TP Manual, and local tax regulations.")
+    # Disclaimer banner — compact, styled
+    st.markdown(
+        f"""
+        <div style='
+            background: linear-gradient(135deg, #FFF3CD 0%, #FFF8E1 100%);
+            border-left: 4px solid {ACCENT_YELLOW};
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+            font-size: 0.83rem;
+            line-height: 1.5;
+        '>
+            <b>⚠️ 数据声明 / Data Disclaimer:</b> 本数据库中的数据为演示用模拟数据。实际分析应使用经审计的真实财务数据。
+            / Data is simulated for demonstration. Use audited real-world data for actual analysis.<br>
+            <b>⛔ 免责声明 / Legal Disclaimer:</b> 本工具不构成税务建议，不能替代专业税务顾问的判断。
+            / This tool does NOT constitute tax advice. Always verify against current OECD TPG, UN TP Manual, and local tax regulations.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # 功能说明栏
     st.markdown("""
@@ -897,16 +1142,17 @@ def global_data_portal() -> None:
 
     kpi_cols = st.columns(4)
     kpis = [
-        ("可比公司 / Global Comparables", f"{total_comparables:,}", "Total comparable companies"),
-        ("覆盖经济体 / Economies", f"{total_countries}", "Economies covered"),
-        ("行业 / Industries", f"{total_industries}", "Industry segments"),
-        ("MAP案件 / Active MAP", f"{active_map_cases}", "Mutual Agreement Procedures"),
+        ("可比公司 / Global Comparables", f"{total_comparables:,}", "Total comparable companies", "🏢"),
+        ("覆盖经济体 / Economies", f"{total_countries}", "Economies covered", "🌍"),
+        ("行业 / Industries", f"{total_industries}", "Industry segments", "🏭"),
+        ("MAP案件 / Active MAP", f"{active_map_cases}", "Mutual Agreement Procedures", "⚖️"),
     ]
-    for col, (label, value, help_text) in zip(kpi_cols, kpis):
+    for col, (label, value, help_text, icon) in zip(kpi_cols, kpis):
         with col:
             st.markdown(
                 f"""
                 <div class='kpi-card' title='{help_text}'>
+                    <div style='font-size:1.6rem;margin-bottom:0.2rem'>{icon}</div>
                     <div class='kpi-value'>{value}</div>
                     <div class='kpi-label'>{label}</div>
                 </div>
@@ -1119,7 +1365,29 @@ def comparability_wizard() -> None:
     progress_pct = int((current_step + 1) / 5 * 100)
     st.progress(progress_pct / 100, text=f"分析进度 / Progress: {progress_pct}% (第{current_step + 1}步 / Step {current_step + 1} of 5)")
 
-    # Show step navigation bar — clickable to jump between steps
+    # Visual step navigator — circle-based connected steps
+    step_nums = ["①", "②", "③", "④", "⑤"]
+    step_short = ["交易+FAR", "选方法", "筛可比", "做调整", "定区间"]
+    step_short_en = ["Transaction", "Method", "Screen", "Adjust", "Range"]
+    nav_html = '<div class="step-nav-container">'
+    for i in range(5):
+        if i < current_step:
+            cls = "completed"
+        elif i == current_step:
+            cls = "active"
+        else:
+            cls = "pending"
+        nav_html += f'''
+        <div class="step-nav-item">
+            <div class="step-nav-circle {cls}">{step_nums[i] if cls != 'completed' else '✓'}</div>
+            <div class="step-nav-label"><b>{step_short[i]}</b><br/>{step_short_en[i]}</div>
+        </div>'''
+        if i < 4:
+            nav_html += f'<div style="flex:1;height:2px;background:{"#27AE60" if i < current_step else "#E0E6ED"};margin:0 4px;margin-top:-20px;transition:all 0.3s;"></div>'
+    nav_html += '</div>'
+    st.markdown(nav_html, unsafe_allow_html=True)
+
+    # Also provide clickable buttons for navigation
     step_cols = st.columns(5)
     for i, (col, label) in enumerate(zip(step_cols, tab_labels)):
         with col:
@@ -2115,13 +2383,36 @@ def comparability_wizard() -> None:
                     "符合独立交易原则，转让定价安排合规。"
                 )
 
-            # Display compliance result
+            # Display compliance result — modern card style
             st.markdown(f"""
-            <div style='border: 3px solid {compliance_color}; border-radius: 10px; padding: 1.5rem; text-align: center; margin: 1rem 0;'>
-                <h2 style='color: {compliance_color}; margin: 0;'>{compliance_status}</h2>
-                <p style='font-size: 1.2rem; margin: 0.5rem 0;'>
-                    被测试方: <b>{tested_margin:.2f}%</b> | 独立交易区间: <b>{q1:.2f}% - {q3:.2f}%</b> | 中位数: <b>{median_val_test:.2f}%</b>
-                </p>
+            <div style='
+                background: linear-gradient(135deg, {compliance_color}11 0%, {compliance_color}08 100%);
+                border: 2px solid {compliance_color};
+                border-radius: 14px;
+                padding: 1.8rem;
+                text-align: center;
+                margin: 1rem 0;
+                box-shadow: 0 4px 15px {compliance_color}22;
+            '>
+                <div style='font-size: 1.5rem; margin-bottom: 0.5rem;'>{'🎯' if '✅' in compliance_status else '⚠️'}</div>
+                <h2 style='color: {compliance_color}; margin: 0; font-size: 1.3rem;'>{compliance_status}</h2>
+                <div style='
+                    display: flex; justify-content: center; gap: 2rem;
+                    margin-top: 1rem; flex-wrap: wrap;
+                '>
+                    <div>
+                        <div style='font-size:0.75rem;color:#7F8C8D;text-transform:uppercase;letter-spacing:1px'>被测试方 / Tested Party</div>
+                        <div style='font-size:1.5rem;font-weight:800;color:{compliance_color}'>{tested_margin:.2f}%</div>
+                    </div>
+                    <div>
+                        <div style='font-size:0.75rem;color:#7F8C8D;text-transform:uppercase;letter-spacing:1px'>独立交易区间 / AL Range</div>
+                        <div style='font-size:1.5rem;font-weight:800;color:{PRIMARY_COLOR}'>{q1:.2f}% - {q3:.2f}%</div>
+                    </div>
+                    <div>
+                        <div style='font-size:0.75rem;color:#7F8C8D;text-transform:uppercase;letter-spacing:1px'>中位数 / Median</div>
+                        <div style='font-size:1.5rem;font-weight:800;color:{TEXT_DARK}'>{median_val_test:.2f}%</div>
+                    </div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -2188,36 +2479,41 @@ def extractive_pricing() -> None:
     # Help
     if st.button("Help", key="help_extractive", help="Guidance on extractive industry pricing"):
         st.info("""
-        **Extractive Industry Pricing Help**
+        **采掘业定价工作台 — 使用帮助 / Extractive Industry Pricing Help**
 
+        本工作台为采掘业提供大宗商品定价分析工具：
         This workbench provides tools for pricing commodities in the extractive sector:
-        - **Exchange Prices**: Reference market prices for major commodities
-        - **CUP Calculator**: Calculate the Comparable Uncontrolled Price for mineral sales
-        - **Comparable Transactions**: Reference table of recent comparable transactions
 
+        - **交易所价格 / Exchange Prices**: 主要大宗商品的市场参考价格 / Reference market prices for major commodities
+        - **CUP计算器 / CUP Calculator**: 计算矿产销售的独立交易价格 / Calculate the Comparable Uncontrolled Price for mineral sales
+        - **可比交易 / Comparable Transactions**: 近期可比交易参考表 / Reference table of recent comparable transactions
+
+        当有公认交易所报价时，CUP法通常是采掘业最适当的方法。
         The CUP method is typically the most appropriate method for commodity transactions
         where quoted prices are available on recognized exchanges.
         """)
 
     # Commodity selector
     commodity = st.selectbox(
-        "Select Commodity",
-        ["Copper Concentrate", "Iron Ore (Fe 62%)", "Gold Dore (Au 85%)"],
-        help="Select the commodity type for pricing analysis",
+        "选择商品 / Select Commodity",
+        ["Copper Concentrate / 铜精矿", "Iron Ore (Fe 62%) / 铁矿石", "Gold Dore (Au 85%) / 金多尔"],
+        help="选择要分析的大宗商品类型 / Select the commodity type for pricing analysis",
     )
 
     # Exchange prices
     st.markdown("---")
-    st.subheader("Reference Exchange Prices (30-Day Trend)")
+    st.subheader("交易所参考价格（30日趋势）/ Reference Exchange Prices (30-Day Trend)")
 
     commodity_data = load_commodity_data()
-    selected_commodity = commodity.split(" (")[0] if " (" in commodity else commodity.split(" ")[0]
-    if selected_commodity == "Copper":
+    # Match commodity by keyword
+    if "Copper" in commodity or "铜" in commodity:
         selected_commodity = "Copper"
-    elif selected_commodity == "Iron":
+    elif "Iron" in commodity or "铁" in commodity:
         selected_commodity = "Iron Ore"
-    elif selected_commodity == "Gold":
+    elif "Gold" in commodity or "金" in commodity:
         selected_commodity = "Gold"
+    else:
+        selected_commodity = "Copper"
 
     comm_data = commodity_data[commodity_data["commodity"] == selected_commodity].sort_values("date")
 
@@ -2229,16 +2525,16 @@ def extractive_pricing() -> None:
         kpi_cols = st.columns(4)
         with kpi_cols[0]:
             unit = "USD/tonne" if selected_commodity in ["Copper", "Iron Ore"] else "USD/oz"
-            st.metric(f"Latest Price ({unit})", f"${latest_price:,.2f}", f"${price_change:,.2f}")
+            st.metric(f"最新价格 / Latest Price ({unit})", f"${latest_price:,.2f}", f"${price_change:,.2f}")
         with kpi_cols[1]:
             avg_price = comm_data["price_usd"].mean()
-            st.metric("30-Day Average", f"${avg_price:,.2f}")
+            st.metric("30日均 / 30-Day Avg", f"${avg_price:,.2f}")
         with kpi_cols[2]:
             high_price = comm_data["price_usd"].max()
-            st.metric("30-Day High", f"${high_price:,.2f}")
+            st.metric("30日最高 / 30-Day High", f"${high_price:,.2f}")
         with kpi_cols[3]:
             low_price = comm_data["price_usd"].min()
-            st.metric("30-Day Low", f"${low_price:,.2f}")
+            st.metric("30日最低 / 30-Day Low", f"${low_price:,.2f}")
 
         # Price trend chart
         fig_trend = go.Figure()
@@ -2249,9 +2545,9 @@ def extractive_pricing() -> None:
             marker=dict(size=6),
         ))
         fig_trend.update_layout(
-            title=f"{selected_commodity} Price Trend (Last 30 Days)",
-            xaxis_title="Date",
-            yaxis_title=f"Price ({unit})",
+            title=f"{selected_commodity} 价格趋势（近30天）/ Price Trend",
+            xaxis_title="日期 / Date",
+            yaxis_title=f"价格 / Price ({unit})",
             height=400,
             margin=dict(l=0, r=0, t=40, b=0),
         )
@@ -2259,8 +2555,9 @@ def extractive_pricing() -> None:
 
     # CUP Calculator
     st.markdown("---")
-    st.subheader("CUP Calculator - Mineral Sale Pricing")
+    st.subheader("CUP计算器 — 矿产销售定价 / CUP Calculator - Mineral Sale Pricing")
     st.markdown("""
+    使用可比非受控价格法(CUP)计算矿产销售的独立交易价格。
     Calculate the arm's length price for mineral sales using the Comparable Uncontrolled Price method.
 
     📌 **参考交易所 / Reference Exchanges:**
@@ -2270,51 +2567,54 @@ def extractive_pricing() -> None:
 
     💡 CUP法在采掘业中是最可靠的方法，因为大宗商品有公开透明的市场价格。
     税务机关验证CUP时会检查：①价格来源是否权威；②品位/质量调整是否合理；③计价货币和 Incoterms 是否一致。
+    The CUP method is the most reliable for extractive industries due to transparent commodity prices.
+    Tax authorities verify: ① price source authority; ② grade/quality adjustments; ③ currency and Incoterms consistency.
     """)
 
     calc_col1, calc_col2 = st.columns(2)
     with calc_col1:
-        spot_price = st.number_input("Spot/Reference Price (USD)", min_value=0.0, value=float(latest_price if len(comm_data) > 0 else 0), step=10.0,
-                                    help="Current spot price or reference price on the exchange")
-        grade_pct = st.number_input("Grade/Assay (%)", min_value=0.0, max_value=100.0, value=30.0 if "Copper" in commodity else (62.0 if "Iron" in commodity else 85.0), step=0.1,
-                                   help="Mineral grade or assay percentage")
+        spot_price = st.number_input("现货/参考价格 / Spot Price (USD)", min_value=0.0, value=float(latest_price if len(comm_data) > 0 else 0), step=10.0,
+                                    help="交易所当前现货价格或参考价 / Current spot price or reference price on the exchange")
+        grade_pct = st.number_input("品位/化验值 / Grade/Assay (%)", min_value=0.0, max_value=100.0, value=30.0 if "Copper" in commodity or "铜" in commodity else (62.0 if "Iron" in commodity or "铁" in commodity else 85.0), step=0.1,
+                                   help="矿石品位或化验百分比 / Mineral grade or assay percentage")
     with calc_col2:
-        tc_rc = st.number_input("TC/RC (USD/tonne or %)", min_value=0.0, value=100.0 if "Copper" in commodity else 0.0, step=1.0,
-                               help="Treatment and refining charges (for copper concentrate)")
-        freight = st.number_input("Freight & Insurance (USD/tonne)", min_value=0.0, value=25.0, step=1.0,
-                                 help="Transportation and insurance costs")
+        tc_rc = st.number_input("加工精炼费 / TC/RC (USD/tonne)", min_value=0.0, value=100.0 if "Copper" in commodity or "铜" in commodity else 0.0, step=1.0,
+                               help="处理和精炼费用(适用于铜精矿) / Treatment and refining charges (for copper concentrate)")
+        freight = st.number_input("运费及保险 / Freight & Insurance (USD/tonne)", min_value=0.0, value=25.0, step=1.0,
+                                 help="运输和保险成本 / Transportation and insurance costs")
 
     # Calculate
-    if "Copper" in commodity:
+    if "Copper" in commodity or "铜" in commodity:
         payable_metal = spot_price * (grade_pct / 100)
         deductions = tc_rc + freight
         net_price = payable_metal - deductions
-        payable_formula = f"Spot Price x Grade% = ${spot_price:,.2f} x {grade_pct}% = ${payable_metal:,.2f}/tonne"
-    elif "Iron" in commodity:
+        payable_formula = f"现货价 × 品位% = ${spot_price:,.2f} × {grade_pct}% = ${payable_metal:,.2f}/吨\nSpot Price × Grade% = ${spot_price:,.2f} × {grade_pct}% = ${payable_metal:,.2f}/tonne"
+    elif "Iron" in commodity or "铁" in commodity:
         fe_adjustment = (grade_pct - 62) * 0.01 * spot_price  # Simplified
         net_price = spot_price + fe_adjustment - freight
-        payable_formula = f"Base Price + Fe Adjustment - Freight"
+        payable_formula = f"基准价 + 铁品位调整 - 运费\nBase Price + Fe Adjustment - Freight"
     else:  # Gold
         payable_metal = spot_price * (grade_pct / 100)
         deductions = freight
         net_price = payable_metal - deductions
-        payable_formula = f"Spot Price x Gold Content% = ${spot_price:,.2f} x {grade_pct}%"
+        payable_formula = f"现货价 × 含金量% = ${spot_price:,.2f} × {grade_pct}%\nSpot Price × Gold Content% = ${spot_price:,.2f} × {grade_pct}%"
 
     st.markdown("---")
     result_cols = st.columns(3)
     with result_cols[0]:
-        st.metric("Calculated Net Price", f"${net_price:,.2f}/tonne" if "Gold" not in commodity else f"${net_price:,.2f}/oz")
+        unit_label = "/tonne" if "Gold" not in commodity and "金" not in commodity else "/oz"
+        st.metric("计算净价 / Net Price", f"${net_price:,.2f}{unit_label}")
     with result_cols[1]:
-        st.metric("Deductions", f"${deductions:,.2f}")
+        st.metric("扣减项 / Deductions", f"${deductions:,.2f}")
     with result_cols[2]:
         margin = (net_price / spot_price * 100) if spot_price > 0 else 0
-        st.metric("Net/Spot Ratio", f"{margin:.1f}%")
+        st.metric("净价/现货比 / Net/Spot", f"{margin:.1f}%")
 
-    st.caption(f"Calculation: {payable_formula}")
+    st.caption(f"计算公式 / Formula: {payable_formula}")
 
     # Comparable transactions reference
     st.markdown("---")
-    st.subheader("Comparable Transactions Reference")
+    st.subheader("可比交易参考 / Comparable Transactions Reference")
 
     np.random.seed(88)
     tx_data = []
@@ -2385,12 +2685,12 @@ def country_policy() -> None:
     search_col, compare_toggle_col = st.columns([3, 1])
     with search_col:
         selected_country = st.selectbox(
-            "Select Economy",
+            "选择经济体 / Select Economy",
             [""] + sorted(df_policies["country"].tolist()),
-            help="Choose an economy to view its TP policy details",
+            help="选择一个经济体查看转让定价政策详情 / Choose an economy to view its TP policy details",
         )
     with compare_toggle_col:
-        compare_mode = st.toggle("Compare Mode", help="Enable side-by-side comparison of two countries")
+        compare_mode = st.toggle("对比模式 / Compare Mode", help="并排对比两个经济体 / Enable side-by-side comparison of two economies")
 
     if compare_mode:
         col_a, col_b = st.columns(2)
@@ -2404,13 +2704,13 @@ def country_policy() -> None:
             row_b = df_policies[df_policies["country"] == country_b].iloc[0]
 
             for label, key in [
-                ("TP Regulations", "has_tp_regulations"),
-                ("Documentation Requirements", "documentation_req"),
-                ("Safe Harbor Available", "safe_harbor"),
-                ("Tax Treaties", "treaty_count"),
-                ("MAP Cases (2024)", "map_cases_2024"),
-                ("APA Available", "apa_available"),
-                ("Exchange Mechanism", "exchange_mechanism"),
+                ("TP法规 / TP Regulations", "has_tp_regulations"),
+                ("文档要求 / Documentation", "documentation_req"),
+                ("安全港 / Safe Harbor", "safe_harbor"),
+                ("税收协定数 / Tax Treaties", "treaty_count"),
+                ("MAP案件(2024) / MAP Cases", "map_cases_2024"),
+                ("APA可用 / APA Available", "apa_available"),
+                ("信息交换 / Exchange Mechanism", "exchange_mechanism"),
             ]:
                 c1, c2 = st.columns(2)
                 with c1:
@@ -2452,20 +2752,20 @@ def country_policy() -> None:
         # Top metrics
         mcol1, mcol2, mcol3, mcol4 = st.columns(4)
         with mcol1:
-            st.metric("TP Regulations", "Yes" if row["has_tp_regulations"] else "No")
+            st.metric("TP法规 / TP Regs", "有/Yes" if row["has_tp_regulations"] else "无/No")
         with mcol2:
-            st.metric("Tax Treaties", row["treaty_count"])
+            st.metric("税收协定 / Tax Treaties", row["treaty_count"])
         with mcol3:
-            st.metric("MAP Cases (2024)", row["map_cases_2024"])
+            st.metric("MAP案件(2024) / MAP Cases", row["map_cases_2024"])
         with mcol4:
-            st.metric("APA Available", "Yes" if row["apa_available"] else "No")
+            st.metric("APA可用性 / APA Available", "有/Yes" if row["apa_available"] else "无/No")
 
         st.markdown("---")
 
         # Detail sections
         dcol1, dcol2 = st.columns(2)
         with dcol1:
-            st.markdown("#### Documentation Requirements")
+            st.markdown("#### 文档要求 / Documentation Requirements")
             st.info(row["documentation_req"])
 
             st.markdown("#### 安全港规则 / Safe Harbor Rules")
@@ -2481,18 +2781,18 @@ def country_policy() -> None:
                 st.warning("⚠️ 该经济体目前无安全港规则。/ No safe harbor rules currently in effect.")
 
         with dcol2:
-            st.markdown("#### Information Exchange Mechanisms")
+            st.markdown("#### 信息交换机制 / Information Exchange")
             st.info(row["exchange_mechanism"])
 
-            st.markdown("#### MAP/APA Framework")
+            st.markdown("#### MAP/APA 框架 / MAP/APA Framework")
             if row["apa_available"]:
-                st.success("APA program is operational. MAP is available under tax treaties.")
+                st.success("APA项目已运行。可通过税收协定启动MAP。/ APA program is operational. MAP is available under tax treaties.")
             else:
-                st.warning("APA not yet available. MAP may be accessible through treaty network.")
+                st.warning("APA暂不可用。MAP可能通过税收协定网络进行。/ APA not yet available. MAP may be accessible through treaty network.")
 
         # Policy summary text
         st.markdown("---")
-        st.markdown("#### Transfer Pricing Regulation Summary")
+        st.markdown("#### 转让定价法规摘要 / TP Regulation Summary")
         summary_text = (
             f"**{selected_country}** has {'comprehensive' if row['has_tp_regulations'] else 'limited'} "
             f"transfer pricing regulations requiring **{row['documentation_req']}**. "
@@ -2534,8 +2834,8 @@ def country_policy() -> None:
         st.plotly_chart(fig_treaty, use_container_width=True)
     else:
         # Show all countries overview table
-        st.info("Select an economy above to view detailed policy information, or enable Compare Mode.")
-        st.subheader("Countries Overview")
+        st.info("请在上方选择一个经济体查看详细政策信息，或启用对比模式。/ Select an economy above to view detailed policy information, or enable Compare Mode.")
+        st.subheader("各经济体总览 / Countries Overview")
         display_df = df_policies.copy()
         display_df["TP Regs"] = display_df["has_tp_regulations"].apply(lambda x: "Yes" if x else "No")
         display_df["Safe Harbor"] = display_df["safe_harbor"].apply(lambda x: "Yes" if x else "No")
@@ -3100,11 +3400,11 @@ def map_apa_tracker() -> None:
             },
         )
     else:
-        st.info("No cases match the selected filters.")
+        st.info("没有符合筛选条件的案件。/ No cases match the selected filters.")
 
     # Trend analysis
     st.markdown("---")
-    st.subheader("Trend Analysis")
+    st.subheader("趋势分析 / Trend Analysis")
 
     trend_col1, trend_col2 = st.columns(2)
 
@@ -3114,7 +3414,7 @@ def map_apa_tracker() -> None:
         status_counts.columns = ["Status", "Count"]
         fig_pie = px.pie(
             status_counts, values="Count", names="Status",
-            title="Case Status Distribution",
+            title="案件状态分布 / Case Status Distribution",
             color="Status",
             color_discrete_map={
                 "Active": ACCENT_YELLOW,
@@ -3130,8 +3430,8 @@ def map_apa_tracker() -> None:
         # Duration by case type
         fig_box = px.box(
             cases_df, x="case_type", y="duration_days", color="status",
-            title="Case Duration by Type",
-            labels={"duration_days": "Duration (days)", "case_type": "Case Type"},
+            title="各类型案件时长 / Case Duration by Type",
+            labels={"duration_days": "时长(天) / Duration (days)", "case_type": "案件类型 / Case Type"},
             height=350,
             color_discrete_map={
                 "Active": ACCENT_YELLOW,
@@ -3180,16 +3480,16 @@ def map_apa_tracker() -> None:
         fig_line = go.Figure()
         fig_line.add_trace(go.Scatter(
             x=quarters, y=new_cases, mode="lines+markers",
-            name="New Cases", line=dict(color=ACCENT_RED),
+            name="新增案件 / New Cases", line=dict(color=ACCENT_RED),
         ))
         fig_line.add_trace(go.Scatter(
             x=quarters, y=resolved_cases_trend, mode="lines+markers",
-            name="Resolved", line=dict(color=ACCENT_GREEN),
+            name="已解决 / Resolved", line=dict(color=ACCENT_GREEN),
         ))
         fig_line.update_layout(
-            title="MAP Case Trend",
-            xaxis_title="Quarter",
-            yaxis_title="Cases",
+            title="MAP案件趋势 / MAP Case Trend",
+            xaxis_title="季度 / Quarter",
+            yaxis_title="案件数 / Cases",
             height=280,
             legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5),
         )
@@ -3201,7 +3501,7 @@ def map_apa_tracker() -> None:
         issue_duration.columns = ["Issue", "Avg Duration"]
         fig_bar = px.bar(
             issue_duration, y="Issue", x="Avg Duration",
-            orientation="h", title="Avg. Duration by Issue Type",
+            orientation="h", title="各争议类型平均时长 / Avg. Duration by Issue Type",
             color="Avg Duration",
             color_continuous_scale="RdYlGn_r",
             height=280,
@@ -3391,17 +3691,17 @@ def digital_economy() -> None:
             values = filtered_digital[pli_col].dropna() * 100
             fig_hist = px.histogram(
                 values, nbins=20,
-                title=f"{selected_pli} Distribution",
+                title=f"{selected_pli} 分布 / Distribution",
                 labels={"value": f"{selected_pli} (%)"},
                 height=350,
                 color_discrete_sequence=[PRIMARY_COLOR],
             )
             st.plotly_chart(fig_hist, use_container_width=True)
 
-            st.markdown(f"**Mean**: {values.mean():.2f}% | **Median**: {values.median():.2f}% | **Std Dev**: {values.std():.2f}%")
+            st.markdown(f"**均值/Mean**: {values.mean():.2f}% | **中位数/Median**: {values.median():.2f}% | **标准差/Std Dev**: {values.std():.2f}%")
 
     with cbs_col2:
-        st.markdown("#### Regional Comparison")
+        st.markdown("#### 区域对比 / Regional Comparison")
 
         if len(filtered_digital) > 0:
             region_summary = filtered_digital.groupby("country").agg(
@@ -3416,7 +3716,7 @@ def digital_economy() -> None:
                 y="country",
                 x="avg_margin",
                 orientation="h",
-                title="Average Operating Margin by Economy",
+                title="各经济体平均营业利润率 / Average Operating Margin by Economy",
                 labels={"avg_margin": "平均营业利润率 / Avg Operating Margin", "country": "经济体 / Economy"},
                 height=350,
                 color="avg_margin",
@@ -3590,16 +3890,26 @@ def risk_assessment() -> None:
             risk_color = "#28a745"
             risk_advice = "风险水平正常，保持常规合规监控即可。"
 
-        # Display overall risk
+        # Display overall risk — modern gauge card
         st.markdown("---")
         risk_col1, risk_col2 = st.columns([1, 2])
         with risk_col1:
             st.markdown(f"""
-            <div style='text-align: center; padding: 1.5rem; border: 3px solid {risk_color};
-                        border-radius: 15px; background-color: {risk_color}11;'>
-                <h2 style='color: {risk_color}; margin: 0;'>{risk_level}</h2>
-                <h1 style='color: {risk_color}; margin: 0.5rem 0;'>{overall_risk:.0f}</h1>
-                <p style='color: #666;'>综合风险评分 / Overall Risk Score</p>
+            <div style='
+                text-align: center;
+                padding: 2rem 1.5rem;
+                border: 2px solid {risk_color};
+                border-radius: 16px;
+                background: linear-gradient(135deg, {risk_color}11 0%, {risk_color}05 100%);
+                box-shadow: 0 4px 20px {risk_color}22;
+            '>
+                <div style='font-size: 2rem; margin-bottom: 0.3rem;'>{'🟢' if overall_risk < 30 else '🟡' if overall_risk < 50 else '🔴' if overall_risk < 70 else '⚫'}</div>
+                <h2 style='color: {risk_color}; margin: 0; font-size: 1.1rem;'>{risk_level}</h2>
+                <div style='
+                    font-size: 3rem; font-weight: 900; color: {risk_color};
+                    line-height: 1.2; margin: 0.3rem 0;
+                '>{overall_risk:.0f}<span style='font-size:1rem;font-weight:500;color:#7F8C8D'>/100</span></div>
+                <p style='color: #7F8C8D; font-size:0.8rem; text-transform: uppercase; letter-spacing:1px; margin:0;'>综合风险评分 / Overall Risk Score</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -3731,7 +4041,7 @@ def risk_assessment() -> None:
         fig_cbc.update_layout(
             barmode='group',
             title='收入/利润/员工分布对比 / Revenue vs Profit vs Employee Distribution',
-            yaxis_title='占比 (%)',
+            yaxis_title='占比 (%) / Share (%)',
             height=450,
         )
         st.plotly_chart(fig_cbc, use_container_width=True)
@@ -4354,28 +4664,32 @@ def customs_valuation() -> None:
 def render_sidebar() -> str:
     """Render the sidebar navigation and return the selected page name."""
     with st.sidebar:
-        st.markdown("<div class='sidebar-title'>🌍 国际转让定价对比数据库<br>ITP Comparability Database</div>", unsafe_allow_html=True)
-        st.markdown("*UN International Tax Cooperation Framework*")
+        st.markdown(
+            "<div class='sidebar-title'>🌍 国际转让定价对比数据库<br><span style='font-size:0.85rem;font-weight:500'>ITP Comparability Database</span></div>",
+            unsafe_allow_html=True,
+        )
+        st.caption("UN International Tax Cooperation Framework Convention")
         st.markdown("---")
 
         # Global Search
         st.markdown("#### 🔎 全局搜索 / Global Search")
         search_query = st.text_input(
-            "搜索公司/国家/行业 / Search",
+            "搜索公司/经济体/行业 / Search",
             placeholder="输入关键词... / Enter keyword...",
             key="global_search_input",
-            help="搜索公司名称、国家名、ISIC行业代码"
+            help="搜索公司名称、经济体名、ISIC行业代码 / Search companies, economies, ISIC codes",
+            label_visibility="collapsed",
         )
         if search_query and len(search_query.strip()) >= 2:
             results = global_search(search_query)
             if results:
-                st.markdown(f"**找到 {len(results)} 条结果 / {len(results)} results found:**")
+                st.markdown(f"**找到 {len(results)} 条结果 / {len(results)} results:**")
                 for r_type, r_label, r_detail in results[:15]:
                     icon = {"company": "🏢", "country": "🌐", "industry": "🏭"}.get(r_type, "•")
                     st.markdown(f"<small>{icon} <b>{r_label}</b> — {r_detail}</small>", unsafe_allow_html=True)
                 st.markdown("---")
             else:
-                st.markdown("<small>无匹配结果 / No results</small>")
+                st.markdown("<small>无匹配结果 / No results found</small>")
                 st.markdown("---")
 
         # Navigation — categorized
@@ -4409,12 +4723,17 @@ def render_sidebar() -> str:
 
         selected = None
         for cat_name, items in nav_categories.items():
-            st.markdown(f"**{cat_name}**")
+            # Category header — styled as a subtle section label
+            st.markdown(
+                f"<div style='font-size:0.7rem;font-weight:700;color:#7F8C8D;"
+                f"text-transform:uppercase;letter-spacing:1px;margin:0.8rem 0 0.3rem 0;'>{cat_name}</div>",
+                unsafe_allow_html=True,
+            )
             for page_key, page_label in items:
                 if st.button(page_label, key=f"nav_{page_key}", use_container_width=True,
                              help=page_label):
                     selected = page_key
-            st.markdown("<div style='height:0.3rem'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height:0.2rem'></div>", unsafe_allow_html=True)
 
         # Fallback: if nothing selected yet, default to first page
         if selected is None:
@@ -4422,32 +4741,30 @@ def render_sidebar() -> str:
         st.session_state["_last_selected_page"] = selected
 
         st.markdown("---")
-        st.markdown("#### ℹ️ 关于本系统 / About")
-        st.markdown("""
-        本系统支持**联合国国际税收合作框架公约**的实施，
-        帮助发展中国家税务官员获取可比数据进行转让定价分析。
+        with st.expander("ℹ️ 关于本系统 / About"):
+            st.markdown("""
+            本系统支持**联合国国际税收合作框架公约**的实施，
+            帮助发展中国家税务官员获取可比数据进行转让定价分析。
 
-        This system supports the implementation of the
-        **UN International Tax Cooperation Framework Convention**,
-        helping developing economies access comparable data
-        for transfer pricing analyses.
+            This system supports the implementation of the
+            **UN International Tax Cooperation Framework Convention**,
+            helping developing economies access comparable data
+            for transfer pricing analyses.
 
-        **支持条款 / Articles Supported:**
-        - 第5条 / Art. 5: 公平分配征税权 / Fair Distribution of Taxing Rights
-        - 第11条 / Art. 11: 能力建设 / Capacity Building
-        - 第13条 / Art. 13: 争议预防与解决 / Dispute Prevention & Resolution
+            **支持条款 / Articles Supported:**
+            - 第5条 / Art. 5: 公平分配征税权 / Fair Distribution of Taxing Rights
+            - 第11条 / Art. 11: 能力建设 / Capacity Building
+            - 第13条 / Art. 13: 争议预防与解决 / Dispute Prevention & Resolution
 
-        **方法论参考 / Methodology References:**
-        - 联合国转让定价实务手册 / UN Practical Manual on TP
-        - OECD转让定价指南 / OECD TPG
-        (以UN体系为主，OECD体系为辅 / UN-primary, OECD-supplementary)
-        """)
-        if 'db_error' in st.session_state:
-            st.markdown("---")
-            st.warning(f"⚠️ 数据库连接失败，使用模拟数据。错误: {st.session_state['db_error'][:100]}")
+            **方法论参考 / Methodology References:**
+            - 联合国转让定价实务手册 / UN Practical Manual on TP
+            - OECD转让定价指南 / OECD TPG
+            (以UN体系为主，OECD体系为辅 / UN-primary, OECD-supplementary)
+            """)
+            if 'db_error' in st.session_state:
+                st.warning(f"⚠️ 数据库连接失败，使用模拟数据。错误: {st.session_state['db_error'][:100]}")
 
-        st.markdown("---")
-        st.markdown(f"<small>版本 v3.0 | {datetime.now().year}</small>", unsafe_allow_html=True)
+        st.markdown(f"<small style='color:{TEXT_MUTED}'>版本 v4.0 | {datetime.now().year} | Powered by UN Framework Convention</small>", unsafe_allow_html=True)
 
         # Glossary
         with st.expander("📖 术语表 / Glossary"):
