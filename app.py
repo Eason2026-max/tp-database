@@ -522,34 +522,9 @@ def load_countries_data_v2() -> pd.DataFrame:
         # Normalize country names: treat "Taiwan (China)" as "China" for selection
         df["display_name"] = df["country"].replace({"Taiwan (China)": "China"})
         return df
-    # Fallback mock data
-    data = [
-        {"country": "Kenya", "iso_code": "KEN", "comparables_count": 42, "last_updated": "2025-06-15", "industries_count": 5, "region": "Africa", "developing": True, "map_cases": 3},
-        {"country": "Nigeria", "iso_code": "NGA", "comparables_count": 38, "last_updated": "2025-06-10", "industries_count": 4, "region": "Africa", "developing": True, "map_cases": 5},
-        {"country": "South Africa", "iso_code": "ZAF", "comparables_count": 67, "last_updated": "2025-06-18", "industries_count": 7, "region": "Africa", "developing": True, "map_cases": 8},
-        {"country": "India", "iso_code": "IND", "comparables_count": 95, "last_updated": "2025-06-20", "industries_count": 9, "region": "Asia", "developing": True, "map_cases": 12},
-        {"country": "China", "iso_code": "CHN", "comparables_count": 110, "last_updated": "2025-06-22", "industries_count": 10, "region": "Asia", "developing": True, "map_cases": 15},
-        {"country": "Brazil", "iso_code": "BRA", "comparables_count": 78, "last_updated": "2025-06-17", "industries_count": 8, "region": "Latin America", "developing": True, "map_cases": 9},
-        {"country": "Germany", "iso_code": "DEU", "comparables_count": 92, "last_updated": "2025-06-21", "industries_count": 9, "region": "Europe", "developing": False, "map_cases": 11},
-        {"country": "United States", "iso_code": "USA", "comparables_count": 125, "last_updated": "2025-06-23", "industries_count": 12, "region": "North America", "developing": False, "map_cases": 18},
-        {"country": "Mexico", "iso_code": "MEX", "comparables_count": 55, "last_updated": "2025-06-14", "industries_count": 6, "region": "Latin America", "developing": True, "map_cases": 5},
-        {"country": "Indonesia", "iso_code": "IDN", "comparables_count": 45, "last_updated": "2025-06-12", "industries_count": 5, "region": "Asia", "developing": True, "map_cases": 4},
-        {"country": "Chile", "iso_code": "CHL", "comparables_count": 35, "last_updated": "2025-06-09", "industries_count": 4, "region": "Latin America", "developing": True, "map_cases": 2},
-        {"country": "Peru", "iso_code": "PER", "comparables_count": 20, "last_updated": "2025-05-30", "industries_count": 3, "region": "Latin America", "developing": True, "map_cases": 1},
-        {"country": "Vietnam", "iso_code": "VNM", "comparables_count": 33, "last_updated": "2025-06-10", "industries_count": 4, "region": "Asia", "developing": True, "map_cases": 3},
-        {"country": "France", "iso_code": "FRA", "comparables_count": 76, "last_updated": "2025-06-18", "industries_count": 7, "region": "Europe", "developing": False, "map_cases": 8},
-        {"country": "United Kingdom", "iso_code": "GBR", "comparables_count": 85, "last_updated": "2025-06-20", "industries_count": 8, "region": "Europe", "developing": False, "map_cases": 10},
-        {"country": "Hong Kong SAR", "iso_code": "HKG", "comparables_count": 0, "last_updated": "2025-06-01", "industries_count": 0, "region": "Asia", "developing": False, "map_cases": 0},
-    ]
-    mock_df = pd.DataFrame(data)
-    # Also add TWN mirroring CHN for mock data
-    chn_mock = mock_df[mock_df["iso_code"] == "CHN"]
-    if not chn_mock.empty:
-        twn_mock = chn_mock.iloc[0].copy()
-        twn_mock["iso_code"] = "TWN"
-        twn_mock["country"] = "Taiwan (China)"
-        mock_df = pd.concat([mock_df, pd.DataFrame([twn_mock])], ignore_index=True)
-    return mock_df
+    # Fallback: use comprehensive UN member states data
+    from un_countries_data import generate_countries_data
+    return generate_countries_data()
 
 
 @st.cache_data(ttl=3600)
@@ -587,54 +562,9 @@ def load_mock_companies() -> pd.DataFrame:
     """)
     if df is not None and not df.empty:
         return df
-    # Fallback mock data
-    np.random.seed(42)
-    industries = ["Manufacturing", "Software & IT Services", "Pharmaceuticals", "Financial Services",
-                  "Retail & Distribution", "Mining & Extractive", "Energy & Utilities", "Telecommunications"]
-    countries = ["India", "China", "Brazil", "South Africa", "Kenya", "Nigeria", "Germany", "USA",
-                 "Japan", "Mexico", "Indonesia", "Thailand", "Chile", "Australia", "Canada"]
-    country_codes = ["IND", "CHN", "BRA", "ZAF", "KEN", "NGA", "DEU", "USA",
-                     "JPN", "MEX", "IDN", "THA", "CHL", "AUS", "CAN"]
-    companies = []
-    for i in range(150):
-        revenue = np.random.uniform(5, 500)
-        cogs_ratio = np.random.uniform(0.55, 0.85)
-        cogs = revenue * cogs_ratio
-        gross_profit = revenue - cogs
-        gross_margin = gross_profit / revenue
-        op_expense = revenue * np.random.uniform(0.05, 0.20)
-        op_profit = gross_profit - op_expense
-        op_margin = op_profit / revenue
-        cost_plus = op_profit / cogs if cogs > 0 else 0.15
-        net_assets = revenue * np.random.uniform(0.3, 1.5)
-        idx = np.random.randint(0, len(countries))
-        isic_sectors = ["C-Manufacturing", "G-Wholesale/Retail", "J-Information/IT", "K-Finance", "M-Professional", "B-Mining"]
-        isic_codes_map = {"C-Manufacturing": "C", "G-Wholesale/Retail": "G", "J-Information/IT": "J", "K-Finance": "K", "M-Professional": "M", "B-Mining": "B"}
-        chosen_sector = np.random.choice(isic_sectors)
-        companies.append({
-            "company_id": f"CMP{i+1:04d}", "company_name": f"Company {i+1:03d} Ltd.",
-            "country": countries[idx], "country_code": country_codes[idx],
-            "industry_code_isic": isic_codes_map[chosen_sector], "industry": np.random.choice(industries),
-            "isic_section": isic_codes_map[chosen_sector],
-            "revenue_musd": round(revenue, 2), "net_assets_musd": round(net_assets, 2),
-            "operating_margin": round(op_margin, 4),
-            "gross_margin": round(gross_margin, 4),
-            "cost_plus_markup": round(cost_plus, 4),
-            "roe": round(np.random.uniform(0.02, 0.30), 4), "roa": round(np.random.uniform(0.01, 0.20), 4),
-            "berry_ratio": round(gross_profit / op_expense if op_expense > 0 else 1.05, 4),
-            "roce": round(np.random.uniform(0.05, 0.25), 4),
-            "net_profit_margin": round(np.random.uniform(0.02, 0.20), 4),
-            "related_party_pct": round(np.random.uniform(0, 0.60), 4),
-            "fiscal_year": int(np.random.choice([2022, 2023, 2024])),
-            "functions": ", ".join(np.random.choice(["R&D", "Manufacturing", "Distribution", "Marketing", "Digital Platform"],
-                                                         size=np.random.randint(1, 4), replace=False)),
-            "risks": "Market Risk",
-            "data_tier": np.random.choice(["Tier1", "Tier2", "Tier3"]),
-            "data_source": "Company Annual Reports",
-            "has_inventory_risk": bool(np.random.choice([True, False], p=[0.6, 0.4])),
-            "has_market_risk": bool(np.random.choice([True, False], p=[0.7, 0.3])),
-        })
-    return pd.DataFrame(companies)
+    # Fallback: use comprehensive UN member states data
+    from un_countries_data import generate_companies_data
+    return generate_companies_data(800)
 
 
 @st.cache_data(ttl=3600)
@@ -762,29 +692,9 @@ def load_map_cases() -> pd.DataFrame:
         df['amount_disputed_musd'] = df['amount_disputed_musd'].fillna(0)
         df['duration_days'] = df['duration_days'].fillna(0)
         return df
-    # Fallback mock data
-    np.random.seed(55)
-    statuses = ["Active", "Resolved", "Pending", "Closed - No agreement"]
-    case_types = ["MAP", "Bilateral APA", "Unilateral APA", "Multilateral APA"]
-    countries1 = ["Kenya", "Nigeria", "South Africa", "India", "China", "Brazil", "Mexico", "Indonesia", "Vietnam", "Chile"]
-    countries2 = ["Germany", "USA", "UK", "Netherlands", "France", "Japan", "Australia", "Canada", "Spain", "Italy"]
-    cases = []
-    for i in range(60):
-        start_date = datetime(2022, 1, 1) + timedelta(days=int(np.random.randint(0, 900)))
-        duration_days = int(np.random.randint(60, 730))
-        status = str(np.random.choice(statuses, p=[0.35, 0.30, 0.25, 0.10]))
-        cases.append({
-            "case_id": f"MAP{i+1:04d}", "case_type": str(np.random.choice(case_types)),
-            "taxpayer": f"Taxpayer {i+1:03d} Ltd.",
-            "country_a": str(np.random.choice(countries1)), "country_b": str(np.random.choice(countries2)),
-            "issue": str(np.random.choice(["Royalty pricing", "Intra-group services", "Goods transfer pricing",
-                                         "Financial transactions", "Business restructuring", "Digital services"])),
-            "status": status, "start_date": start_date.strftime("%Y-%m-%d"),
-            "duration_days": duration_days,
-            "amount_disputed_musd": round(float(np.random.uniform(0.5, 50)), 2),
-            "resolution_date": (start_date + timedelta(days=duration_days)).strftime("%Y-%m-%d") if status in ["Resolved", "Closed - No agreement"] else None,
-        })
-    return pd.DataFrame(cases)
+    # Fallback: use comprehensive UN member states data
+    from un_countries_data import generate_map_cases
+    return generate_map_cases(120)
 
 
 @st.cache_data(ttl=3600)
@@ -819,45 +729,25 @@ def load_digital_comparables() -> pd.DataFrame:
     """)
     if df is not None and not df.empty:
         return df
-    # Fallback mock data
-    np.random.seed(77)
-    service_types = ["Cloud Computing", "SaaS", "Digital Advertising", "E-commerce Platform",
-                     "Data Analytics", "IT Outsourcing", "Digital Content", "Fintech Services"]
-    countries = ["India", "Ireland", "Singapore", "USA", "Germany", "UK", "Israel", "South Korea",
-                 "Estonia", "UAE", "Brazil", "Nigeria"]
-    data = []
-    for i in range(80):
-        revenue = np.random.uniform(10, 500)
-        op_margin = round(float(np.random.uniform(0.05, 0.45)), 4)
-        data.append({
-            "company_id": f"DIG{i+1:04d}", "company_name": f"Digital Co {i+1:03d}",
-            "country": str(np.random.choice(countries)), "service_type": str(np.random.choice(service_types)),
-            "revenue_musd": round(revenue, 2),
-            "operating_margin": op_margin,
-            "cost_plus_markup": round(op_margin / (1 - op_margin), 4) if op_margin < 1 else 0.5,
-            "tnmm_profit_margin": op_margin,
-            "digital_intensity": round(float(np.random.uniform(0.3, 1.0)), 4),
-            "automation_level": "Automated",
-            "users_millions": int(np.random.uniform(1, 500)),
-            "fiscal_year": int(np.random.choice([2022, 2023, 2024])),
-        })
-    return pd.DataFrame(data)
+    # Fallback: use comprehensive UN member states data
+    from un_countries_data import generate_digital_comparables
+    return generate_digital_comparables(150)
 
 
 @st.cache_data(ttl=3600)
 def load_recent_updates() -> list:
-    """Load mock recent data contribution feed."""
+    """Load bilingual recent data contribution feed."""
     return [
-        {"time": "2 hours ago", "message": "Kenya uploaded 12 manufacturing comparables", "type": "upload"},
-        {"time": "5 hours ago", "message": "India updated Q1 2025 financial data for 8 software companies", "type": "update"},
-        {"time": "1 day ago", "message": "Brazil contributed extractive industry pricing data (iron ore)", "type": "upload"},
-        {"time": "1 day ago", "message": "South Africa approved 2 new bilateral APAs", "type": "policy"},
-        {"time": "2 days ago", "message": "Nigeria added MAP resolution documentation for 2024", "type": "update"},
-        {"time": "3 days ago", "message": "Vietnam uploaded digital services comparables (SaaS sector)", "type": "upload"},
-        {"time": "3 days ago", "message": "Mexico updated safe harbor thresholds for maquiladoras", "type": "policy"},
-        {"time": "4 days ago", "message": "Ghana contributed 5 new agricultural processing comparables", "type": "upload"},
-        {"time": "5 days ago", "message": "China updated CbC reporting guidance for MNEs", "type": "policy"},
-        {"time": "1 week ago", "message": "Indonesia uploaded 15 new mining sector comparables", "type": "upload"},
+        {"time": "2小时前 / 2h ago", "message": "肯尼亚上传了12家制造业可比公司 / Kenya uploaded 12 manufacturing comparables", "type": "upload"},
+        {"time": "5小时前 / 5h ago", "message": "印度更新了8家软件公司的2025年Q1财务数据 / India updated Q1 2025 financial data for 8 software companies", "type": "update"},
+        {"time": "1天前 / 1d ago", "message": "巴西贡献了采掘业铁矿石定价数据 / Brazil contributed extractive industry pricing data (iron ore)", "type": "upload"},
+        {"time": "1天前 / 1d ago", "message": "南非批准了2项新的双边APA / South Africa approved 2 new bilateral APAs", "type": "policy"},
+        {"time": "2天前 / 2d ago", "message": "尼日利亚添加了2024年MAP解决文档 / Nigeria added MAP resolution documentation for 2024", "type": "update"},
+        {"time": "3天前 / 3d ago", "message": "越南上传了数字服务可比数据（SaaS行业）/ Vietnam uploaded digital services comparables (SaaS sector)", "type": "upload"},
+        {"time": "3天前 / 3d ago", "message": "墨西哥更新了maquiladora安全港门槛 / Mexico updated safe harbor thresholds for maquiladoras", "type": "policy"},
+        {"time": "4天前 / 4d ago", "message": "加纳贡献了5家农产品加工可比公司 / Ghana contributed 5 new agricultural processing comparables", "type": "upload"},
+        {"time": "5天前 / 5d ago", "message": "中国更新了跨国企业CbC报告指引 / China updated CbC reporting guidance for MNEs", "type": "policy"},
+        {"time": "1周前 / 1w ago", "message": "印度尼西亚上传了15家矿业可比公司 / Indonesia uploaded 15 new mining sector comparables", "type": "upload"},
     ]
 
 
@@ -4364,6 +4254,7 @@ def global_search(query: str) -> list:
         return results
 
     companies_df = load_mock_companies()
+    countries_df = load_countries_data_v2()
 
     # Search companies
     company_matches = companies_df[
@@ -4373,13 +4264,24 @@ def global_search(query: str) -> list:
         results.append(('company', row['company_name'],
                          f"{row.get('country', '')} | {row.get('industry_code_isic', '')} | FY{row.get('fiscal_year', '')}"))
 
-    # Search countries
+    # Search countries — also search the full countries dataset
     country_matches = companies_df[
         companies_df['country'].str.contains(query, case=False, na=False)
     ]['country'].unique()[:10]
     for c in country_matches:
         count = len(companies_df[companies_df['country'] == c])
-        results.append(('country', c, f"{count} companies"))
+        results.append(('country', c, f"{count} 家公司 / {count} companies"))
+
+    # Also search the full UN economies list (even those without companies)
+    if 'country' in countries_df.columns:
+        econ_matches = countries_df[
+            countries_df['country'].str.contains(query, case=False, na=False)
+        ].head(10)
+        for _, row in econ_matches.iterrows():
+            c = row['country']
+            if not any(r[1] == c for r in results):  # Avoid duplicates
+                comp_count = int(row.get('comparables_count', 0))
+                results.append(('country', c, f"{comp_count} 家可比 / {comp_count} comparables"))
 
     # Search industries
     if 'industry_code_isic' in companies_df.columns:
@@ -4388,7 +4290,7 @@ def global_search(query: str) -> list:
         ]['industry_code_isic'].unique()[:5]
         for ind in industry_matches:
             count = len(companies_df[companies_df['industry_code_isic'] == ind])
-            results.append(('industry', f"ISIC {ind}", f"{count} companies"))
+            results.append(('industry', f"ISIC {ind}", f"{count} 家公司 / {count} companies"))
 
     return results
 
@@ -4432,8 +4334,9 @@ def customs_valuation() -> None:
     """)
 
     if customs_df is None or customs_df.empty:
-        st.warning("⚠️ 海关估价数据不可用。/ Customs valuation data not available.")
-        return
+        # Fallback: use comprehensive UN member states data
+        from un_countries_data import generate_customs_data
+        customs_df = generate_customs_data(500)
 
     customs_tabs = st.tabs([
         "🔍 海关数据查询 / Data Search",
@@ -4668,7 +4571,7 @@ def render_sidebar() -> str:
             "<div class='sidebar-title'>🌍 国际转让定价对比数据库<br><span style='font-size:0.85rem;font-weight:500'>ITP Comparability Database</span></div>",
             unsafe_allow_html=True,
         )
-        st.caption("UN International Tax Cooperation Framework Convention")
+        st.caption("联合国国际税收合作框架公约 / UN International Tax Cooperation Framework Convention")
         st.markdown("---")
 
         # Global Search
@@ -4692,33 +4595,33 @@ def render_sidebar() -> str:
                 st.markdown("<small>无匹配结果 / No results found</small>")
                 st.markdown("---")
 
-        # Navigation — categorized
+        # Navigation — categorized with bilingual labels and informative tooltips
         st.markdown("#### 📑 功能导航 / Navigation")
 
         nav_categories = {
             "整体 / Overview": [
-                ("Global Data Portal", "🌐 全球数据总览"),
-                ("Industry Benchmark", "📈 行业基准与趋势"),
+                ("Global Data Portal", "🌐 全球数据总览 / Global Portal", "世界地图+KPI+经济体详情 / World map, KPIs & economy detail"),
+                ("Industry Benchmark", "📈 行业基准与趋势 / Industry Benchmark", "按行业/经济体/年度查看利润率基准 / View margin benchmarks by industry/economy/year"),
             ],
             "行业 / Industry": [
-                ("Extractive Pricing", "⛏️ 采掘业定价"),
-                ("Digital Economy", "💻 数字经济分析"),
-                ("Customs Valuation", "🛃 海关估价参考"),
+                ("Extractive Pricing", "⛏️ 采掘业定价 / Extractive Pricing", "CUP计算器+交易所参考价 / CUP calculator + exchange reference prices"),
+                ("Digital Economy", "💻 数字经济分析 / Digital Economy", "数字服务定价+平台可比分析 / Digital services pricing & platform comparables"),
+                ("Customs Valuation", "🛃 海关估价参考 / Customs Valuation", "海关数据辅助转让定价分析 / Customs data as TP auxiliary reference"),
             ],
             "案件 / Cases": [
-                ("Comparability Wizard", "🔍 可比性分析向导"),
-                ("MAP/APA Tracker", "⚖️ 争议解决追踪"),
-                ("Risk Assessment", "🚨 风险评估中心"),
+                ("Comparability Wizard", "🔍 可比性分析向导 / Wizard", "5步引导完成完整TP分析 / 5-step guided TP analysis workflow"),
+                ("MAP/APA Tracker", "⚖️ 争议解决追踪 / MAP-APA Tracker", "MAP/APA案件状态+趋势分析 / MAP/APA case status & trend analysis"),
+                ("Risk Assessment", "🚨 风险评估中心 / Risk Center", "6维风险雷达+合规检查+CbC / 6-dim risk radar + compliance + CbC"),
             ],
             "政策 / Policy": [
-                ("Country Policy", "📋 各经济体政策"),
-                ("Data Contribution", "📤 数据贡献管理"),
+                ("Country Policy", "📋 各经济体政策 / Country Policy", "TP法规+安全港+APA+MAP框架 / TP regs, safe harbor, APA & MAP framework"),
+                ("Data Contribution", "📤 数据贡献管理 / Data Contribution", "上传+模板+验证+审批流程 / Upload, template, validation & approval"),
             ],
         }
 
         page_labels_short = {}
         for cat_items in nav_categories.values():
-            for key, label in cat_items:
+            for key, label, _tooltip in cat_items:
                 page_labels_short[key] = label
 
         selected = None
@@ -4729,9 +4632,9 @@ def render_sidebar() -> str:
                 f"text-transform:uppercase;letter-spacing:1px;margin:0.8rem 0 0.3rem 0;'>{cat_name}</div>",
                 unsafe_allow_html=True,
             )
-            for page_key, page_label in items:
+            for page_key, page_label, page_tooltip in items:
                 if st.button(page_label, key=f"nav_{page_key}", use_container_width=True,
-                             help=page_label):
+                             help=page_tooltip):
                     selected = page_key
             st.markdown("<div style='height:0.2rem'></div>", unsafe_allow_html=True)
 
