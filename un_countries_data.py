@@ -460,32 +460,33 @@ def generate_country_policies() -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-def generate_companies_data(n_companies: int = 800) -> pd.DataFrame:
-    """Generate comparable company data spread across many economies."""
+def generate_companies_data(n_companies: int = 1200) -> pd.DataFrame:
+    """Generate comparable company data spread across many economies with realistic financials."""
     np.random.seed(42)
 
-    # Industries with ISIC codes
+    # Industries with ISIC codes and realistic margin ranges
     industries = [
-        ("Manufacturing", "C"),
-        ("Software & IT Services", "J"),
-        ("Pharmaceuticals", "C"),
-        ("Financial Services", "K"),
-        ("Retail & Distribution", "G"),
-        ("Mining & Extractive", "B"),
-        ("Energy & Utilities", "D"),
-        ("Telecommunications", "J"),
-        ("Construction", "F"),
-        ("Transportation & Logistics", "H"),
-        ("Agriculture & Food Processing", "A"),
-        ("Automotive", "C"),
-        ("Chemicals", "C"),
-        ("Electronics", "C"),
-        ("Textiles & Apparel", "C"),
-        ("Professional Services", "M"),
-        ("Real Estate", "L"),
-        ("Healthcare", "Q"),
-        ("Education", "P"),
-        ("Media & Entertainment", "J"),
+        # (industry_name, isic_code, typical_om_range, typical_gm_range, typical_rp_pct)
+        ("Manufacturing", "C", (0.03, 0.12), (0.20, 0.40), (0.20, 0.55)),
+        ("Software & IT Services", "J", (0.08, 0.28), (0.55, 0.80), (0.15, 0.45)),
+        ("Pharmaceuticals", "C", (0.12, 0.35), (0.65, 0.85), (0.10, 0.35)),
+        ("Financial Services", "K", (0.05, 0.22), (0.40, 0.65), (0.25, 0.60)),
+        ("Retail & Distribution", "G", (0.02, 0.08), (0.15, 0.30), (0.30, 0.70)),
+        ("Mining & Extractive", "B", (0.01, 0.18), (0.25, 0.50), (0.15, 0.50)),
+        ("Energy & Utilities", "D", (0.03, 0.15), (0.20, 0.45), (0.20, 0.55)),
+        ("Telecommunications", "J", (0.05, 0.18), (0.45, 0.70), (0.15, 0.45)),
+        ("Construction", "F", (0.02, 0.08), (0.15, 0.25), (0.25, 0.60)),
+        ("Transportation & Logistics", "H", (0.03, 0.10), (0.20, 0.40), (0.25, 0.55)),
+        ("Agriculture & Food Processing", "A", (0.02, 0.09), (0.15, 0.35), (0.25, 0.55)),
+        ("Automotive", "C", (0.04, 0.10), (0.18, 0.32), (0.25, 0.55)),
+        ("Chemicals", "C", (0.05, 0.14), (0.25, 0.45), (0.20, 0.50)),
+        ("Electronics", "C", (0.04, 0.12), (0.20, 0.40), (0.25, 0.55)),
+        ("Textiles & Apparel", "C", (0.03, 0.09), (0.20, 0.38), (0.25, 0.55)),
+        ("Professional Services", "M", (0.06, 0.20), (0.50, 0.75), (0.20, 0.50)),
+        ("Real Estate", "L", (0.04, 0.18), (0.35, 0.60), (0.15, 0.45)),
+        ("Healthcare", "Q", (0.05, 0.15), (0.40, 0.65), (0.15, 0.45)),
+        ("Education", "P", (0.04, 0.12), (0.45, 0.70), (0.10, 0.35)),
+        ("Media & Entertainment", "J", (0.06, 0.18), (0.40, 0.65), (0.15, 0.45)),
     ]
 
     # Weight countries by data availability
@@ -505,29 +506,44 @@ def generate_companies_data(n_companies: int = 800) -> pd.DataFrame:
     weights /= weights.sum()
     iso_map = {c: country_weights[c][0] for c in countries_list}
 
+    # ISIC section full names
+    section_names = {
+        'A': 'A-农林牧渔', 'B': 'B-采矿', 'C': 'C-制造', 'D': 'D-电力燃气',
+        'E': 'E-水务', 'F': 'F-建筑', 'G': 'G-批发零售', 'H': 'H-运输仓储',
+        'I': 'I-住宿餐饮', 'J': 'J-信息技术', 'K': 'K-金融保险',
+        'L': 'L-房地产', 'M': 'M-专业服务', 'N': 'N-辅助服务',
+        'P': 'P-教育', 'Q': 'Q-医疗健康',
+    }
+
     companies = []
     for i in range(n_companies):
         country = np.random.choice(countries_list, p=weights)
         iso_code = iso_map[country]
-        ind_name, isic_code = industries[np.random.randint(0, len(industries))]
+        ind_name, isic_code, om_range, gm_range, rp_range = industries[np.random.randint(0, len(industries))]
 
         revenue = np.random.uniform(5, 800)
-        cogs_ratio = np.random.uniform(0.45, 0.85)
-        cogs = revenue * cogs_ratio
+        # Use industry-specific gross margin
+        gross_margin = np.random.uniform(gm_range[0], gm_range[1])
+        cogs = revenue * (1 - gross_margin)
         gross_profit = revenue - cogs
-        gross_margin = gross_profit / revenue
-        op_expense = revenue * np.random.uniform(0.05, 0.25)
+
+        # Operating expenses as % of revenue
+        op_expense_ratio = np.random.uniform(0.05, 0.25)
+        op_expense = revenue * op_expense_ratio
         op_profit = gross_profit - op_expense
         op_margin = op_profit / revenue
 
-        # Industry-specific margin adjustments
-        if ind_name in ["Pharmaceuticals", "Software & IT Services"]:
-            op_margin = max(op_margin, np.random.uniform(0.10, 0.35))
-        elif ind_name in ["Mining & Extractive", "Energy & Utilities"]:
-            op_margin = np.random.uniform(0.02, 0.20)
+        # Clamp to industry-specific operating margin range
+        op_margin = max(om_range[0], min(om_range[1], op_margin))
+
+        # Recalculate op_profit with clamped margin
+        op_profit = op_margin * revenue
 
         cost_plus = op_profit / cogs if cogs > 0 else 0.15
         net_assets = revenue * np.random.uniform(0.3, 1.5)
+
+        # Berry ratio = gross_profit / op_expense (OECD TPG Ch.6.28-6.33)
+        berry_ratio = gross_profit / op_expense if op_expense > 0 else 1.05
 
         companies.append({
             "company_id": f"CMP{i+1:04d}",
@@ -544,11 +560,11 @@ def generate_companies_data(n_companies: int = 800) -> pd.DataFrame:
             "cost_plus_markup": round(cost_plus, 4),
             "roe": round(np.random.uniform(0.02, 0.30), 4),
             "roa": round(np.random.uniform(0.01, 0.20), 4),
-            "berry_ratio": round(gross_profit / op_expense if op_expense > 0 else 1.05, 4),
+            "berry_ratio": round(berry_ratio, 4),
             "roce": round(np.random.uniform(0.05, 0.25), 4),
-            "net_profit_margin": round(np.random.uniform(0.02, 0.20), 4),
-            "related_party_pct": round(np.random.uniform(0, 0.60), 4),
-            "fiscal_year": int(np.random.choice([2022, 2023, 2024])),
+            "net_profit_margin": round(max(op_margin - np.random.uniform(0.01, 0.05), 0.01), 4),
+            "related_party_pct": round(np.random.uniform(rp_range[0], rp_range[1]), 4),
+            "fiscal_year": int(np.random.choice([2022, 2023, 2024], p=[0.20, 0.30, 0.50])),
             "functions": ", ".join(np.random.choice(
                 ["R&D", "Manufacturing", "Distribution", "Marketing", "Digital Platform", "Logistics"],
                 size=np.random.randint(1, 4), replace=False)),

@@ -379,6 +379,20 @@ st.markdown(
         transform: translateY(-2px);
         box-shadow: 0 4px 15px rgba(39,174,96,0.35) !important;
     }}
+
+    /* ===== Disable browser tooltip on sidebar nav buttons to prevent blocking ===== */
+    div.stButton > button[title]::after,
+    .streamlit-expanderHeader[title]::after {{
+        content: none !important;
+    }}
+    /* Remove the default title attribute tooltip that may block clicks */
+    section[data-testid="stSidebar"] div.stButton > button {{
+        pointer-events: auto !important;
+    }}
+    /* Hide any floating tooltip containers in sidebar */
+    section[data-testid="stSidebar"] [data-baseweb="tooltip"] {{
+        display: none !important;
+    }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -564,7 +578,7 @@ def load_mock_companies() -> pd.DataFrame:
         return df
     # Fallback: use comprehensive UN member states data
     from un_countries_data import generate_companies_data
-    return generate_companies_data(800)
+    return generate_companies_data(1200)
 
 
 @st.cache_data(ttl=3600)
@@ -1052,7 +1066,22 @@ def global_data_portal() -> None:
 
     st.markdown("---")
 
-    # World Map
+    # UN Framework compliance note
+    st.info("""
+    📌 **联合国框架公约合规说明 / UN Framework Convention Compliance Note**
+
+    本数据库支持联合国国际税收合作框架公约以下条款的实施：
+    * **第5条 / Art. 5** — 公平分配征税权 / Fair Distribution of Taxing Rights
+    * **第11条 / Art. 11** — 能力建设（帮助发展中国家获取可比数据）/ Capacity Building
+    * **第13条 / Art. 13** — 争议预防与解决 / Dispute Prevention & Resolution
+
+    数据覆盖遵循"发达国家数据丰富、发展中国家数据较少"的真实格局，通过成员国自愿贡献机制逐步缩小差距。
+    Data coverage reflects the real-world pattern: developed economies have richer data,
+    developing economies have less — the voluntary contribution mechanism helps close this gap over time.
+
+    *依据 / Ref: UN TP Manual (2021) Ch.1; OECD TPG (2022) Ch.1; BEPS Actions 5, 13*
+    """)
+    st.markdown("---")
     map_col, feed_col = st.columns([3, 1])
 
     with map_col:
@@ -1999,6 +2028,13 @@ def comparability_wizard() -> None:
 
         🎯 **通俗理解 / In plain terms:** 把所有可比公司的利润率排个队，取中间25%-75%的范围作为"合理区间"。
         被测试方的利润率落在这个区间内=合规；低于下限=可能利润转移；高于上限=也需调查原因。
+
+        📋 **法规依据 / Legal Reference:**
+        * **OECD TPG Ch.3.55-3.63**: 独立交易区间计算方法 / Arm's length range calculation
+        * **OECD TPG Ch.3.65**: 被测试方超出区间时，税务机关可调整至中位数 / Tax authorities may adjust to the median when outside the range
+        * **OECD TPG Ch.3.79**: 建议使用3年平均数据平滑异常波动 / Multi-year averaging recommended
+        * **OECD TPG Ch.3.83**: 异常值调查(1.5×IQR规则) / Outlier investigation (1.5×IQR rule)
+        * **UN TP Manual Ch.3**: 发展中国家实务指导 / Practical guidance for developing economies
         """)
 
         # Back button
@@ -2381,6 +2417,9 @@ def extractive_pricing() -> None:
         当有公认交易所报价时，CUP法通常是采掘业最适当的方法。
         The CUP method is typically the most appropriate method for commodity transactions
         where quoted prices are available on recognized exchanges.
+
+        *依据 / Ref: UN TP Manual (2021) Ch.10 (Minerals and Extractive Industries);
+        OECD TPG (2022) Ch.2.12-2.21 (CUP Method); BEPS Action 10 (Commodities)*
         """)
 
     # Commodity selector
@@ -3421,8 +3460,9 @@ def digital_economy() -> None:
     &nbsp;&nbsp;• <b>Revenue vs Margin</b>: Bubble chart showing pricing characteristics by platform type<br>
     &nbsp;&nbsp;• <b>Digital Intensity</b>: Composite metric for digitalization level<br>
     <br>
-    <i>依据 / Reference: 联合国国际税收合作框架公约第5条及联合国数字经济税收挑战工作组报告<br>
-    UN Framework Convention Art. 5 & UN Committee of Experts on International Cooperation in Tax Matters: Digital Economy Report</i>
+    <i>依据 / Reference: UN TP Manual (2021) Ch.4 (Intra-group Services) & UN Committee of Experts Digital Economy Report;<br>
+    OECD TPG (2022) Ch.1 (Digital Economy); OECD Pillar One (Amount A & Amount B, 2024);<br>
+    UN Model Tax Convention Art. 12B (Automated Digital Services)</i>
     </div>
     """, unsafe_allow_html=True)
 
@@ -3976,13 +4016,13 @@ def industry_benchmark() -> None:
     &nbsp;&nbsp;• <b>PLI分布</b>：营业利润率(OM)、Berry Ratio、ROCE等标准TP利润水平指标<br>
     &nbsp;&nbsp;• <b>跨国对比</b>：同一行业在不同国家的盈利能力差异<br>
     <b>English:</b> BvD Orbis-level industry benchmark analysis.<br>
-    &nbsp;&nbsp;• <b>Industry Benchmark</b>: Select an industry to view median margins, IQR by country<br>
+    &nbsp;&nbsp;• <b>Benchmark by Economy</b>: Select an industry to view median margins and IQR by country<br>
     &nbsp;&nbsp;• <b>Multi-Year Trends</b>: 2022-2024 margin trends to identify industry trajectories<br>
-    &nbsp;&nbsp;• <b>PLI Distribution</b>: Operating Margin, Berry Ratio, ROCE — standard TP profit level indicators<br>
-    &nbsp;&nbsp;• <b>Cross-Country</b>: Same industry profitability differences across countries<br>
+    &nbsp;&nbsp;• <b>PLI Distribution</b>: OM, Berry Ratio, ROCE — standard TP profit level indicators<br>
+    &nbsp;&nbsp;• <b>Cross-Economy Comparison</b>: Profitability differences for the same industry across economies<br>
     <br>
-    <i>依据 / Reference: 联合国转让定价实务手册第3章（可比性分析）<br>
-    UN Practical Manual on Transfer Pricing, Ch. 3 (Comparability Analysis)</i>
+    <i>依据 / Ref: OECD TPG (2022) Ch.2.39-2.49 (TNMM), Ch.3.55-3.79 (Comparability & Averaging);
+    UN TP Manual (2021) Ch.3 (Comparability Analysis); BEPS Action 11 (Economic Data & Analysis)</i>
     </div>
     """, unsafe_allow_html=True)
 
@@ -4295,6 +4335,373 @@ def global_search(query: str) -> list:
     return results
 
 
+# ============== Page 11: Methodology & Reference Framework ==============
+
+def methodology_page() -> None:
+    """Page 11: Methodology & Reference Framework — UN TP Manual + OECD TPG alignment."""
+    st.markdown("<div class='main-header'>📚 方法论与参考框架 / Methodology & Reference Framework</div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='sub-header'>基于联合国转让定价实务手册与OECD转让定价指南的专业参考 / "
+        "Aligned with UN Practical Manual on TP & OECD Transfer Pricing Guidelines</div>",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("""
+    <div class='info-bar'>
+    💡 <b>本页功能说明 / Page Guide:</b><br>
+    <b>中文：</b>本页面是整个数据库的方法论基石，系统梳理联合国和OECD转让定价框架的核心概念、方法与流程。<br>
+    &nbsp;&nbsp;• <b>5种转让定价方法</b>：CUP、RPM、CPM、TNMM、PSM的适用条件与选择逻辑<br>
+    &nbsp;&nbsp;• <b>可比性分析6要素</b>：功能、资产、风险、合同条款、经济环境、商业策略<br>
+    &nbsp;&nbsp;• <b>独立交易原则</b>：ALP的完整定义与实务应用<br>
+    &nbsp;&nbsp;• <b>术语表</b>：中英对照专业术语<br>
+    &nbsp;&nbsp;• <b>法规参考</b>：UN TP手册、OECD TPG、中国42号公告等<br>
+    <b>English:</b> The methodological foundation of the database, aligned with UN and OECD TP frameworks.<br>
+    &nbsp;&nbsp;• <b>5 TP Methods</b>: CUP, RPM, CPM, TNMM, PSM — applicability and selection logic<br>
+    &nbsp;&nbsp;• <b>6 Comparability Factors</b>: Functions, Assets, Risks, Contract Terms, Economic Circumstances, Business Strategies<br>
+    &nbsp;&nbsp;• <b>Arm's Length Principle</b>: Full definition and practical application<br>
+    &nbsp;&nbsp;• <b>Glossary</b>: Bilingual professional terminology<br>
+    &nbsp;&nbsp;• <b>References</b>: UN TP Manual, OECD TPG, China STA Bulletin 42, etc.<br>
+    </div>
+    """, unsafe_allow_html=True)
+
+    method_tabs = st.tabs([
+        "📖 独立交易原则 / ALP",
+        "🔧 5种定价方法 / 5 TP Methods",
+        "📊 可比性分析 / Comparability",
+        "📁 文档要求 / Documentation",
+        "⚖️ 争议解决 / Dispute Resolution",
+        "🔤 术语表 / Glossary",
+        "📑 法规参考 / References",
+    ])
+
+    # ===== Tab 1: Arm's Length Principle =====
+    with method_tabs[0]:
+        st.subheader("📖 独立交易原则 (ALP) / The Arm's Length Principle")
+        st.markdown("""
+        ---
+        ### 🎯 核心定义 / Core Definition
+
+        **独立交易原则**要求关联企业之间的交易条件应当与独立企业之间的交易条件相同。
+        如果关联交易的条件不同于独立企业之间的可比交易，则税务机关有权进行调整。
+
+        The **Arm's Length Principle (ALP)** requires that conditions in transactions between
+        associated enterprises should be the same as those that would be made between
+        independent enterprises. If conditions differ, tax authorities may make adjustments.
+
+        ---
+        ### 📌 法律依据 / Legal Basis
+
+        | 来源 / Source | 条款 / Article | 内容 / Content |
+        |---|---|---|
+        | **UN Model Tax Convention** | Art. 9 (Associated Enterprises) | 关联企业交易可调整 / Authorizes adjustment of associated enterprise transactions |
+        | **OECD Model Tax Convention** | Art. 9 | 同上，附加注释详细说明 / Same, with detailed Commentary |
+        | **UN TP Manual (2017/2021)** | Ch. 1-2 | 发展中国家适用ALP的指导 / Guidance for developing economies applying ALP |
+        | **OECD TPG (2022)** | Ch. 1 | ALP的定义与适用 / Definition and application of ALP |
+        | **中国税法** | 《企业所得税法》第41条 + 国税发〔2009〕2号 + 42号公告 | ALP的法律实施 / Legal implementation in China |
+
+        ---
+        ### 🧠 通俗理解 / Plain Language
+
+        > 💡 **打个比方：** 假设你开了一家面包店，你的亲戚也开了一家面包店。
+        > 如果你从亲戚那里进面粉，价格明显低于市场价——这就是"关联交易价格不公允"。
+        > 独立交易原则就是要求：**亲戚之间的买卖，要按陌生人之间的市场价来定价。**
+
+        > 💡 **In plain terms:** Imagine you own a bakery and your cousin also owns one.
+        > If you buy flour from your cousin at a price far below market — that's a "non-arm's length transaction."
+        > The ALP simply says: **Dealings between related parties should be priced as if they were between strangers.**
+
+        ---
+        ### 🔑 为什么重要 / Why It Matters
+
+        1. **防止利润转移 / Prevent profit shifting**: 确保利润在价值创造地征税 / Ensure profits are taxed where value is created
+        2. **维护税基 / Protect tax base**: 发展中国家尤其依赖ALP保护税收收入 / Developing economies especially rely on ALP to protect tax revenue
+        3. **国际共识 / International consensus**: ALP是200+国家接受的转让定价黄金标准 / ALP is the gold standard accepted by 200+ countries
+        4. **BEPS核心 / Core of BEPS**: BEPS 8-10项行动计划以ALP为基础 / BEPS Actions 8-10 build on ALP
+        """)
+
+    # ===== Tab 2: 5 TP Methods =====
+    with method_tabs[1]:
+        st.subheader("🔧 5种转让定价方法 / 5 Transfer Pricing Methods")
+
+        methods_data = {
+            "方法 / Method": [
+                "CUP\n可比非受控价格法",
+                "RPM\n再销售价格法",
+                "CPM\n成本加成法",
+                "TNMM\n交易净利润法",
+                "PSM\n利润分割法",
+            ],
+            "适用场景 / When to Use": [
+                "有可比价格（商品/服务/许可证）\nComparable prices available",
+                "分销商/再销售方\nDistributor / reseller",
+                "制造商/服务提供商\nManufacturer / service provider",
+                "功能简单的被测试方\nLess complex tested party",
+                "双方都有独特无形资产\nBoth parties own unique intangibles",
+            ],
+            "关键PLI / Key PLI": [
+                "价格 / Price",
+                "毛利率 / Gross Margin",
+                "成本加成率 / Cost Plus Markup",
+                "营业利润率/ Berry Ratio / ROCE",
+                "利润分割比例 / Profit Split Ratio",
+            ],
+            "数据要求 / Data Req": [
+                "★★★★★\n需要精确可比价格",
+                "★★★★\n需要再销售价格+毛利率",
+                "★★★★\n需要成本数据",
+                "★★★\n需要净利润数据（最常用）",
+                "★★★★★\n需要双方财务+无形资产估值",
+            ],
+            "OECD TPG参考 / Ref": [
+                "Ch. 2.12-2.21",
+                "Ch. 2.22-2.30",
+                "Ch. 2.31-2.38",
+                "Ch. 2.39-2.49\n(最常用/most used)",
+                "Ch. 2.50-2.60\nCh. 6 (intangibles)",
+            ],
+        }
+        df_methods = pd.DataFrame(methods_data)
+        st.dataframe(df_methods, use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+        st.markdown("#### 🧠 方法选择逻辑 / Method Selection Logic")
+        st.markdown("""
+        > 📌 **最适当方法原则 / Most Appropriate Method Rule** (OECD TPG Ch.2.1):
+        > 选择"最可靠的"方法，而非"能用的"方法。考虑数据可得性、可比性程度、被测试方特征。
+
+        **选择流程 / Selection Flow:**
+        1. **有精确可比价格？** → CUP（最优） / CUP (best)
+        2. **被测试方是再销售商？** → RPM / RPM
+        3. **被测试方是制造商？** → CPM / CPM
+        4. **以上不适用？** → TNMM（实务中最常用） / TNMM (most used in practice)
+        5. **双方都有独特无形资产？** → PSM / PSM
+
+        > 💡 **通俗理解：** 就像选择交通工具——有精确航班号就坐飞机(CUP)，没有就选火车(TNMM)，
+        > 两个城市都没有直达就转车(PSM)。不是所有方法都适用于所有情况。
+        """)
+
+    # ===== Tab 3: Comparability Analysis =====
+    with method_tabs[2]:
+        st.subheader("📊 可比性分析6要素 / 6 Comparability Factors")
+        st.caption("依据 / Ref: OECD TPG Ch.3.46-3.63 & UN TP Manual Ch.3")
+
+        comp_data = {
+            "要素 / Factor": [
+                "1. 功能分析 / Functions",
+                "2. 资产分析 / Assets",
+                "3. 风险分析 / Risks",
+                "4. 合同条款 / Contract Terms",
+                "5. 经济环境 / Economic Circumstances",
+                "6. 商业策略 / Business Strategies",
+            ],
+            "要点 / Key Points": [
+                "各方实际执行的功能（非合同约定的功能）\nActual functions performed (not contractual)",
+                "有形资产、无形资产、金融资产\nTangible, intangible & financial assets",
+                "市场风险、库存风险、信用风险等\nMarket, inventory, credit risk, etc.",
+                "付款条件、 warranties、期限等\nPayment terms, warranties, duration",
+                "市场大小、竞争程度、地理位置\nMarket size, competition, geography",
+                "创新、市场占有率、成本策略\nInnovation, market share, cost strategy",
+            ],
+            "通俗理解 / Plain Language": [
+                "各自干什么活？谁生产、谁销售、谁研发？",
+                "各自有什么家底？设备、专利、品牌？",
+                "谁承担风险？赔了算谁的？",
+                "合同怎么签的？怎么算钱、怎么保修？",
+                "在哪个市场做生意？竞争激烈吗？",
+                "靠什么赚钱？靠低价、靠品牌、靠创新？",
+            ],
+        }
+        st.dataframe(pd.DataFrame(comp_data), use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+        st.markdown("#### 📐 可比性调整 / Comparability Adjustments")
+        st.caption("依据 / Ref: OECD TPG Ch.3.55-3.57 — WCA是最常见调整")
+        st.markdown("""
+        | 调整类型 / Adjustment | 适用场景 / When | 公式 / Formula |
+        |---|---|---|
+        | **营运资金调整 (WCA)** | 信用条件差异 / Different credit terms | (被测试方周期 - 可比方周期) × (rate/100) × (Revenue/365) |
+        | **地域调整** | 不同市场环境 / Different markets | 按地域成本差异调整 / Adjust by regional cost diff |
+        | **资产调整** | 资产密集度差异 / Asset intensity diff | 调整折旧影响 / Adjust depreciation impact |
+        | **异常值剔除** | 极端值影响 / Outlier influence | 1.5×IQR规则 / 1.5×IQR rule (Ch.3.83) |
+
+        > 💡 **通俗理解：** 就像比较两个人的收入——如果一个人工作时间长、另一个人短，
+        > 不能直接比，要先"折算"成同样的工作时间再比较。WCA就是把不同信用条件的公司"折算"到同一标准。
+        """)
+
+    # ===== Tab 4: Documentation =====
+    with method_tabs[3]:
+        st.subheader("📁 转让定价文档要求 / TP Documentation Requirements")
+        st.caption("依据 / Ref: BEPS Action 13 & 中国42号公告")
+
+        doc_data = {
+            "文档类型 / Doc Type": [
+                "主体文件 / Master File",
+                "本地文件 / Local File",
+                "国别报告 / CbC Report",
+            ],
+            "门槛 / Threshold": [
+                "跨国收入≥€7.5亿 / MNE revenue ≥€750M",
+                "关联交易≥2亿RMB (中国) / Related tx ≥200M RMB",
+                "跨国收入≥€7.5亿 / MNE revenue ≥€750M",
+            ],
+            "截止日期 / Deadline": [
+                "次年6月30日 / By June 30 of following year",
+                "次年6月30日 / By June 30 of following year",
+                "次年12月31日 / By Dec 31 of following year",
+            ],
+            "内容 / Content": [
+                "MNE集团全球业务、无形资产、融资安排\nMNE group global business, intangibles, financing",
+                "关联交易的详细描述、财务数据、方法选择\nDetailed tx description, financial data, method",
+                "各管辖区的收入、利润、纳税、员工数\nRevenue, profit, tax, employees by jurisdiction",
+            ],
+            "法规参考 / Reference": [
+                "BEPS Action 13, Ch.5",
+                "BEPS Action 13, Ch.2; 中国42号公告第14条",
+                "BEPS Action 13, Ch.3; 中国42号公告第26条",
+            ],
+        }
+        st.dataframe(pd.DataFrame(doc_data), use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+        st.markdown("#### 🌍 各经济体文档门槛差异 / Documentation Thresholds by Economy")
+        st.markdown("""
+        - **中国 / China**: 主文件≥50亿RMB, 本地文件≥2亿RMB, CbC≥55亿RMB (42号公告)
+        - **欧盟 / EU**: 欧盟指令2016/881，与BEPS 13一致
+        - **美国 / USA**: IRC §6038A, 表5471, 与BEPS 13基本一致
+        - **印度 / India**: Rule 10D, 10E, 10F — 门槛较低，覆盖更广
+        - **巴西 / Brazil**: 2023年起全面采纳OECD方法，此前采用独特预设利润率
+        - **南非 / South Africa**: 与BEPS 13一致，无额外门槛
+        - **肯尼亚 / Kenya**: 2023年转让定价条例，采纳BEPS 13三档文档
+
+        > ⚠️ **实务提示：** 各经济体门槛和截止日期不同，跨国企业需逐管辖区确认合规要求。
+        """)
+
+    # ===== Tab 5: Dispute Resolution =====
+    with method_tabs[4]:
+        st.subheader("⚖️ 争议预防与解决 / Dispute Prevention & Resolution")
+        st.caption("依据 / Ref: UN Framework Convention Art. 13 & OECD TPG Ch.4 & BEPS Action 14")
+
+        st.markdown("""
+        | 机制 / Mechanism | 性质 / Nature | 时限 / Timeline | 适用 / Applicability |
+        |---|---|---|---|
+        | **APA** 预约定价安排 | 事前预防 / Preventive | 1-3年协商 | 高频关联交易、复杂定价 |
+        | **MAP** 相互协商程序 | 事后解决 / Remedial | 2年内解决 (BEPS 14) | 双重征税争议 |
+        **仲裁 Arbitration | MAP失败后 / Post-MAP | 仲裁裁决3年内 | 欧盟/部分条约 |
+
+        ---
+        #### 📌 BEPS Action 14 最低标准 / Minimum Standards
+
+        1. **MAP案件应在2年内解决** / MAP cases should be resolved within 2 years
+        2. **确保纳税人可启动MAP** / Taxpayers can initiate MAP
+        3. **确保MAP解决的执行** / Implementation of MAP outcomes
+        4. **避免双重征税** / Avoid double taxation
+
+        ---
+        #### 🧠 通俗理解 / Plain Language
+
+        > 💡 **APA** = "提前签好协议" — 就像买保险，先把价格谈好，以后税务局不会找麻烦。
+        > 💡 **MAP** = "两个税务局坐下来谈" — 就像两个家长吵架解决孩子的问题，孩子（纳税人）不用掏两次钱。
+        > 💡 **仲裁** = "找第三方裁判" — MAP谈不拢就请裁判做决定。
+        """)
+
+    # ===== Tab 6: Glossary =====
+    with method_tabs[5]:
+        st.subheader("🔤 专业术语表 / Professional Glossary")
+
+        glossary = {
+            "术语 / Term": [
+                "ALP", "FAR", "CUP", "RPM", "CPM", "TNMM", "PSM", "PLI",
+                "WCA", "IQR", "CbC", "MAP", "APA", "BEPS",
+                "MNE", "PE", "HTE", "LDC",
+            ],
+            "全称 / Full Name": [
+                "Arm's Length Principle", "Functions-Assets-Risks Analysis",
+                "Comparable Uncontrolled Price", "Resale Price Method",
+                "Cost Plus Method", "Transactional Net Margin Method",
+                "Profit Split Method", "Profit Level Indicator",
+                "Working Capital Adjustment", "Interquartile Range",
+                "Country-by-Country Report", "Mutual Agreement Procedure",
+                "Advance Pricing Arrangement", "Base Erosion and Profit Shifting",
+                "Multinational Enterprise", "Permanent Establishment",
+                "High-Tax Economy", "Least Developed Country",
+            ],
+            "中文 / Chinese": [
+                "独立交易原则", "功能资产风险分析",
+                "可比非受控价格法", "再销售价格法",
+                "成本加成法", "交易净利润法",
+                "利润分割法", "利润水平指标",
+                "营运资金调整", "四分位距",
+                "国别报告", "相互协商程序",
+                "预约定价安排", "税基侵蚀与利润转移",
+                "跨国企业", "常设机构",
+                "高税管辖区", "最不发达国家",
+            ],
+            "通俗解释 / Plain Explanation": [
+                "关联方交易要按独立方价格", "分析各方干什么活、有什么资产、担什么风险",
+                "找市场公开价格来对比", "从再售价倒推合理进价",
+                "在成本上加合理利润", "看净利润率是否合理",
+                "把利润按贡献比例分", "用哪个指标来衡量利润",
+                "调整付款时间差异对利润的影响", "中间50%数据的范围",
+                "跨国企业全球利润分布报告", "两国税务局协商解决争议",
+                "提前和税务局约定定价方法", "防止跨国企业避税的计划",
+                "在多国经营的企业", "在某国可被征税的固定场所",
+                "税率较高的国家", "发展水平最低的国家",
+            ],
+        }
+        st.dataframe(pd.DataFrame(glossary), use_container_width=True, hide_index=True)
+
+    # ===== Tab 7: References =====
+    with method_tabs[6]:
+        st.subheader("📑 法规与参考文献 / Regulatory References")
+
+        st.markdown("#### 📘 联合国文件 / UN Documents")
+        for ref in [
+            "UN Practical Manual on Transfer Pricing (2021) — Ch.1-4, Ch.10 (extractives), Ch.11 (intra-group services)",
+            "UN Model Double Taxation Convention (2021) — Art. 7, 9, 12, 12B",
+            "UN Handbook on Selected Issues in Protection of Tax Base of Developing Countries (2017)",
+            "UN Framework Convention on International Tax Cooperation (2024) — Arts. 5, 6, 11, 13",
+        ]:
+            st.markdown(f"- {ref}")
+
+        st.markdown("\n#### 📗 OECD文件 / OECD Documents")
+        for ref in [
+            "OECD Transfer Pricing Guidelines for Multinational Enterprises and Tax Administrations (2022)",
+            "OECD Model Tax Convention (2022) — Art. 9 and Commentary",
+            "BEPS Action 13: Transfer Pricing Documentation and CbC Reporting (2015)",
+            "BEPS Action 14: Making Dispute Resolution More Effective (2015)",
+            "BEPS Actions 8-10: Aligning Transfer Pricing Outcomes with Value Creation (2015)",
+            "OECD Pillar One: Amount A & Amount B (2024)",
+        ]:
+            st.markdown(f"- {ref}")
+
+        st.markdown("\n#### 📙 中国文件 / China Documents")
+        for ref in [
+            "《企业所得税法》第41条 (2008)",
+            "国税发〔2009〕2号 — 转让定价管理规程",
+            "国家税务总局公告2016年第42号 — 转让定价文档管理规定",
+            "国家税务总局公告2017年第6号 — 特别纳税调查调整办法",
+        ]:
+            st.markdown(f"- {ref}")
+
+        st.markdown("\n#### 📕 其他经济体 / Other Economies")
+        for ref in [
+            "EU Directive 2016/881 — CbC Reporting",
+            "US IRC §482 — Transfer Pricing Rules",
+            "India Rule 10D-10F — TP Documentation Rules",
+            "Brazil Law 14.596/2023 — TP Reform (OECD alignment)",
+            "South Africa TPAR (2023) — TP Adjustment Reporting",
+        ]:
+            st.markdown(f"- {ref}")
+
+        st.markdown("\n---")
+        st.markdown("""
+        > 📌 **本数据库定位 / Database Positioning:**
+        > 以**联合国体系为主**（UN TP Manual, UN Framework Convention），
+        > 以**OECD体系为辅**（OECD TPG, BEPS），兼顾发展中国家和发达国家的实际需求。
+        > UN-primary, OECD-supplementary — serving both developing and developed economies.
+        """)
+
+
 # ============== Page 10: Customs Valuation Reference ==============
 
 def customs_valuation() -> None:
@@ -4595,46 +5002,54 @@ def render_sidebar() -> str:
                 st.markdown("<small>无匹配结果 / No results found</small>")
                 st.markdown("---")
 
-        # Navigation — categorized with bilingual labels and informative tooltips
+        # Navigation — categorized with bilingual labels (no tooltip to avoid blocking)
         st.markdown("#### 📑 功能导航 / Navigation")
 
         nav_categories = {
             "整体 / Overview": [
-                ("Global Data Portal", "🌐 全球数据总览 / Global Portal", "世界地图+KPI+经济体详情 / World map, KPIs & economy detail"),
-                ("Industry Benchmark", "📈 行业基准与趋势 / Industry Benchmark", "按行业/经济体/年度查看利润率基准 / View margin benchmarks by industry/economy/year"),
+                ("Global Data Portal", "🌐 全球数据总览 / Global Portal"),
+                ("Industry Benchmark", "📈 行业基准与趋势 / Industry Benchmark"),
             ],
             "行业 / Industry": [
-                ("Extractive Pricing", "⛏️ 采掘业定价 / Extractive Pricing", "CUP计算器+交易所参考价 / CUP calculator + exchange reference prices"),
-                ("Digital Economy", "💻 数字经济分析 / Digital Economy", "数字服务定价+平台可比分析 / Digital services pricing & platform comparables"),
-                ("Customs Valuation", "🛃 海关估价参考 / Customs Valuation", "海关数据辅助转让定价分析 / Customs data as TP auxiliary reference"),
+                ("Extractive Pricing", "⛏️ 采掘业定价 / Extractive Pricing"),
+                ("Digital Economy", "💻 数字经济分析 / Digital Economy"),
+                ("Customs Valuation", "🛃 海关估价参考 / Customs Valuation"),
             ],
-            "案件 / Cases": [
-                ("Comparability Wizard", "🔍 可比性分析向导 / Wizard", "5步引导完成完整TP分析 / 5-step guided TP analysis workflow"),
-                ("MAP/APA Tracker", "⚖️ 争议解决追踪 / MAP-APA Tracker", "MAP/APA案件状态+趋势分析 / MAP/APA case status & trend analysis"),
-                ("Risk Assessment", "🚨 风险评估中心 / Risk Center", "6维风险雷达+合规检查+CbC / 6-dim risk radar + compliance + CbC"),
+            "分析 / Analysis": [
+                ("Comparability Wizard", "🔍 可比性分析向导 / Wizard"),
+                ("MAP/APA Tracker", "⚖️ 争议解决追踪 / MAP-APA Tracker"),
+                ("Risk Assessment", "🚨 风险评估中心 / Risk Center"),
             ],
             "政策 / Policy": [
-                ("Country Policy", "📋 各经济体政策 / Country Policy", "TP法规+安全港+APA+MAP框架 / TP regs, safe harbor, APA & MAP framework"),
-                ("Data Contribution", "📤 数据贡献管理 / Data Contribution", "上传+模板+验证+审批流程 / Upload, template, validation & approval"),
+                ("Country Policy", "📋 各经济体政策 / Country Policy"),
+                ("Data Contribution", "📤 数据贡献管理 / Data Contribution"),
+                ("Methodology", "📚 方法论与参考 / Methodology"),
             ],
         }
 
         page_labels_short = {}
         for cat_items in nav_categories.values():
-            for key, label, _tooltip in cat_items:
+            for key, label in cat_items:
                 page_labels_short[key] = label
+
+        # Brief description shown under each category header
+        cat_descriptions = {
+            "整体 / Overview": "全球概览+行业基准",
+            "行业 / Industry": "采掘业+数字经济+海关",
+            "分析 / Analysis": "5步向导+争议追踪+风险评估",
+            "政策 / Policy": "法规查询+数据上传+方法论",
+        }
 
         selected = None
         for cat_name, items in nav_categories.items():
-            # Category header — styled as a subtle section label
             st.markdown(
                 f"<div style='font-size:0.7rem;font-weight:700;color:#7F8C8D;"
-                f"text-transform:uppercase;letter-spacing:1px;margin:0.8rem 0 0.3rem 0;'>{cat_name}</div>",
+                f"text-transform:uppercase;letter-spacing:1px;margin:0.8rem 0 0.3rem 0;'>{cat_name}</div>"
+                f"<div style='font-size:0.65rem;color:#aab;margin:0 0 0.3rem 0;'>{cat_descriptions.get(cat_name, '')}</div>",
                 unsafe_allow_html=True,
             )
-            for page_key, page_label, page_tooltip in items:
-                if st.button(page_label, key=f"nav_{page_key}", use_container_width=True,
-                             help=page_tooltip):
+            for page_key, page_label in items:
+                if st.button(page_label, key=f"nav_{page_key}", use_container_width=True):
                     selected = page_key
             st.markdown("<div style='height:0.2rem'></div>", unsafe_allow_html=True)
 
@@ -4724,6 +5139,8 @@ def main() -> None:
         risk_assessment()
     elif selected_page == "Customs Valuation":
         customs_valuation()
+    elif selected_page == "Methodology":
+        methodology_page()
 
 
 if __name__ == "__main__":
