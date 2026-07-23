@@ -45,140 +45,195 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ============== Theme / Styling ==============
-PRIMARY_COLOR = "#5B92E5"  # UN Blue
-PRIMARY_DARK = "#3A6FCC"
-PRIMARY_LIGHT = "#7AB0F0"
-ACCENT_GREEN = "#27AE60"
-ACCENT_RED = "#E74C3C"
-ACCENT_YELLOW = "#F39C12"
-ACCENT_PURPLE = "#8E44AD"
-ACCENT_TEAL = "#1ABC9C"
-BG_LIGHT = "#F7F9FC"
+# ============== Theme / Styling — Professional Business Theme ==============
+# Color palette: deep slate sidebar + warm neutral content + accent navy
+PRIMARY_COLOR = "#1B365D"       # Deep navy — professional, institutional
+PRIMARY_DARK = "#0F2340"
+PRIMARY_LIGHT = "#2E5A8A"
+ACCENT_GREEN = "#1A7A4C"
+ACCENT_RED = "#C0392B"
+ACCENT_YELLOW = "#D4A017"
+ACCENT_PURPLE = "#6B3FA0"
+ACCENT_TEAL = "#0E7C7B"
+BG_LIGHT = "#F4F5F7"            # Warm light gray
 BG_CARD = "#FFFFFF"
-TEXT_DARK = "#2C3E50"
-TEXT_MUTED = "#7F8C8D"
-BORDER_LIGHT = "#E8ECF0"
+BG_SIDEBAR = "#1B1F23"          # Dark sidebar
+BG_SIDEBAR_HOVER = "#2A3038"
+TEXT_DARK = "#1A1D21"
+TEXT_MUTED = "#6B7177"
+TEXT_SIDEBAR = "#C8CCD0"
+TEXT_SIDEBAR_MUTED = "#6B7177"
+BORDER_LIGHT = "#DDE0E4"
+BORDER_SIDEBAR = "#2C3138"
 
 st.markdown(
     f"""
     <style>
+    /* ===== Import professional fonts ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
     /* ===== Global Typography & Background ===== */
     .stApp {{
         background-color: {BG_LIGHT};
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Noto Sans SC', sans-serif;
+        font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         color: {TEXT_DARK};
+        font-size: 0.92rem;
     }}
-    /* Reduce default spacing for tighter layout */
     .stApp > header {{ background-color: transparent; }}
-    .block-container {{ padding-top: 1.5rem; padding-bottom: 2rem; max-width: 1400px; }}
+    .block-container {{ padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1400px; }}
 
-    /* ===== Page Main Header — gradient banner ===== */
+    /* ===== Page Main Header — clean, flat, dark ===== */
     .main-header {{
-        font-size: 2rem;
-        font-weight: 800;
-        color: #FFFFFF;
-        background: linear-gradient(135deg, {PRIMARY_COLOR} 0%, {PRIMARY_DARK} 100%);
-        padding: 1.2rem 1.8rem;
-        border-radius: 14px;
-        margin-bottom: 0.3rem;
-        box-shadow: 0 4px 15px rgba(91, 146, 229, 0.3);
-        letter-spacing: 0.5px;
+        font-size: 1.55rem;
+        font-weight: 700;
+        color: {BG_CARD};
+        background: {PRIMARY_COLOR};
+        padding: 0.9rem 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 0.2rem;
+        letter-spacing: 0.3px;
     }}
     .sub-header {{
-        font-size: 1rem;
+        font-size: 0.88rem;
         color: {TEXT_MUTED};
-        margin-bottom: 1.2rem;
+        margin-bottom: 1rem;
         padding-left: 0.3rem;
+        font-weight: 400;
     }}
 
-    /* ===== KPI Cards — modern with hover lift ===== */
+    /* ===== KPI Cards — minimal, data-focused ===== */
     .kpi-card {{
         background: {BG_CARD};
-        border-radius: 14px;
-        padding: 1.3rem 1.5rem;
-        border-top: 4px solid {PRIMARY_COLOR};
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        border-radius: 8px;
+        padding: 1.1rem 1.3rem;
+        border: 1px solid {BORDER_LIGHT};
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        transition: box-shadow 0.2s ease;
         position: relative;
-        overflow: hidden;
-    }}
-    .kpi-card::before {{
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, {PRIMARY_COLOR}, {ACCENT_TEAL});
     }}
     .kpi-card:hover {{
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }}
     .kpi-value {{
-        font-size: 1.9rem;
-        font-weight: 800;
+        font-size: 1.75rem;
+        font-weight: 700;
         color: {PRIMARY_COLOR};
         line-height: 1.2;
     }}
     .kpi-label {{
-        font-size: 0.78rem;
+        font-size: 0.72rem;
         color: {TEXT_MUTED};
         text-transform: uppercase;
-        letter-spacing: 0.8px;
-        margin-top: 0.3rem;
+        letter-spacing: 0.6px;
+        margin-top: 0.2rem;
+        font-weight: 500;
     }}
 
-    /* ===== Info Bar — softer, rounded ===== */
+    /* ===== Info Bar — subtle tinted background ===== */
     .info-bar {{
-        background: linear-gradient(135deg, #EBF3FC 0%, #F5F9FF 100%);
-        border-left: 4px solid {PRIMARY_COLOR};
-        padding: 1.1rem 1.3rem;
-        border-radius: 10px;
-        margin: 0.8rem 0;
-        font-size: 0.9rem;
+        background: #F8F9FA;
+        border-left: 3px solid {PRIMARY_LIGHT};
+        padding: 0.9rem 1.2rem;
+        border-radius: 6px;
+        margin: 0.6rem 0;
+        font-size: 0.85rem;
         line-height: 1.6;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        border: 1px solid {BORDER_LIGHT};
+        border-left: 3px solid {PRIMARY_LIGHT};
     }}
 
     /* ===== Status Colors ===== */
-    .metric-good {{ color: {ACCENT_GREEN}; font-weight: 700; }}
-    .metric-warning {{ color: {ACCENT_YELLOW}; font-weight: 700; }}
-    .metric-danger {{ color: {ACCENT_RED}; font-weight: 700; }}
+    .metric-good {{ color: {ACCENT_GREEN}; font-weight: 600; }}
+    .metric-warning {{ color: {ACCENT_YELLOW}; font-weight: 600; }}
+    .metric-danger {{ color: {ACCENT_RED}; font-weight: 600; }}
 
     /* ===== Update Feed Items ===== */
     .update-item {{
-        padding: 0.7rem 0.8rem;
+        padding: 0.6rem 0.7rem;
         border-bottom: 1px solid {BORDER_LIGHT};
-        font-size: 0.85rem;
-        transition: background 0.2s;
-        border-radius: 6px;
+        font-size: 0.82rem;
+        border-radius: 4px;
     }}
     .update-item:hover {{
-        background-color: #F0F4FF;
+        background-color: #F0F2F5;
     }}
 
-    /* ===== Sidebar Title ===== */
+    /* ===== Sidebar — Dark professional theme ===== */
+    section[data-testid="stSidebar"] {{
+        background-color: {BG_SIDEBAR} !important;
+        border-right: 1px solid {BORDER_SIDEBAR};
+    }}
+    section[data-testid="stSidebar"] .stMarkdown {{
+        color: {TEXT_SIDEBAR} !important;
+    }}
+    /* Sidebar title */
     .sidebar-title {{
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         font-weight: 700;
-        color: {PRIMARY_COLOR};
-        margin-bottom: 0.4rem;
+        color: #FFFFFF;
+        margin-bottom: 0.3rem;
         padding-bottom: 0.5rem;
-        border-bottom: 2px solid {PRIMARY_COLOR};
+        border-bottom: 1px solid {BORDER_SIDEBAR};
+    }}
+    section[data-testid="stSidebar"] .stCaption {{
+        color: {TEXT_SIDEBAR_MUTED} !important;
+        font-size: 0.72rem;
+    }}
+
+    /* ===== Sidebar buttons — flat dark theme ===== */
+    section[data-testid="stSidebar"] div.stButton > button {{
+        background-color: transparent !important;
+        color: {TEXT_SIDEBAR} !important;
+        border: none !important;
+        border-left: 3px solid transparent !important;
+        border-radius: 0 !important;
+        padding: 0.5rem 0.8rem !important;
+        font-size: 0.82rem !important;
+        text-align: left !important;
+        font-weight: 500 !important;
+        transition: all 0.15s !important;
+        box-shadow: none !important;
+    }}
+    section[data-testid="stSidebar"] div.stButton > button:hover {{
+        background-color: {BG_SIDEBAR_HOVER} !important;
+        color: #FFFFFF !important;
+        border-left-color: {PRIMARY_LIGHT} !important;
+        transform: none !important;
+    }}
+
+    /* ===== Global buttons — flat professional ===== */
+    div.stButton > button:first-child {{
+        background: {PRIMARY_COLOR};
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 0.5rem 1.3rem;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+        box-shadow: none;
+    }}
+    div.stButton > button:first-child:hover {{
+        background: {PRIMARY_DARK};
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }}
+    div.stButton > button:first-child:active {{
+        transform: translateY(0);
     }}
 
     /* ===== Method Badge ===== */
     .method-badge {{
-        background: linear-gradient(135deg, {PRIMARY_COLOR}, {PRIMARY_DARK});
+        background: {PRIMARY_COLOR};
         color: white;
-        padding: 0.35rem 1rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
+        padding: 0.25rem 0.8rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
         font-weight: 600;
         display: inline-block;
     }}
 
-    /* ===== Step Navigator — visual connected steps ===== */
+    /* ===== Step Navigator ===== */
     .step-nav-container {{
         display: flex;
         justify-content: space-between;
@@ -194,20 +249,20 @@ st.markdown(
         z-index: 1;
     }}
     .step-nav-circle {{
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         transition: all 0.3s;
     }}
     .step-nav-circle.active {{
-        background: linear-gradient(135deg, {PRIMARY_COLOR}, {PRIMARY_DARK});
+        background: {PRIMARY_COLOR};
         color: white;
-        box-shadow: 0 3px 12px rgba(91,146,229,0.4);
+        box-shadow: 0 2px 8px rgba(27,54,93,0.3);
         transform: scale(1.1);
     }}
     .step-nav-circle.completed {{
@@ -215,184 +270,153 @@ st.markdown(
         color: white;
     }}
     .step-nav-circle.pending {{
-        background: #E0E6ED;
+        background: #E0E3E6;
         color: {TEXT_MUTED};
     }}
     .step-nav-label {{
-        font-size: 0.72rem;
-        margin-top: 0.4rem;
+        font-size: 0.68rem;
+        margin-top: 0.35rem;
         text-align: center;
-        max-width: 120px;
+        max-width: 110px;
         line-height: 1.3;
     }}
 
-    /* ===== Buttons — modern, rounded ===== */
-    div.stButton > button:first-child {{
-        background: linear-gradient(135deg, {PRIMARY_COLOR}, {PRIMARY_DARK});
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 0.5rem 1.5rem;
-        font-weight: 600;
-        transition: all 0.25s ease;
-        box-shadow: 0 2px 8px rgba(91,146,229,0.25);
-    }}
-    div.stButton > button:first-child:hover {{
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(91,146,229,0.4);
-    }}
-    div.stButton > button:first-child:active {{
-        transform: translateY(0);
-    }}
-    /* Nav button styling: compact, text-left */
-    div.stButton > button[kind="secondary"] {{
-        background-color: {BG_CARD};
-        color: {TEXT_DARK};
-        border: 1px solid {BORDER_LIGHT};
-        border-radius: 8px;
-        padding: 0.45rem 0.8rem;
-        font-size: 0.82rem;
-        text-align: left;
-        font-weight: 500;
-        transition: all 0.2s;
-    }}
-    div.stButton > button[kind="secondary"]:hover {{
-        background-color: #EBF3FC;
-        border-color: {PRIMARY_COLOR};
-        color: {PRIMARY_COLOR};
-        transform: translateX(3px);
-    }}
-
-    /* ===== Dataframe / Table styling ===== */
+    /* ===== Dataframe / Table — clean header ===== */
     .stDataFrame {{
-        border-radius: 10px;
+        border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-    }}
-    .stDataFrame table {{
-        border-radius: 10px;
+        border: 1px solid {BORDER_LIGHT};
     }}
     .stDataFrame thead th {{
-        background-color: {PRIMARY_COLOR} !important;
-        color: white !important;
+        background-color: #F0F2F5 !important;
+        color: {TEXT_DARK} !important;
         font-weight: 600 !important;
+        font-size: 0.82rem !important;
+        border-bottom: 2px solid {BORDER_LIGHT} !important;
     }}
     .stDataFrame tbody tr:nth-child(even) {{
-        background-color: #F7F9FC;
+        background-color: #FAFBFC;
     }}
     .stDataFrame tbody tr:hover {{
-        background-color: #EBF3FC !important;
+        background-color: #E8ECF0 !important;
     }}
 
     /* ===== Expander styling ===== */
     .streamlit-expanderHeader {{
         font-weight: 600;
-        font-size: 0.95rem;
-        border-radius: 8px;
-        transition: background 0.2s;
-    }}
-    .streamlit-expanderHeader:hover {{
-        background-color: #F0F4FF;
+        font-size: 0.9rem;
+        border-radius: 6px;
+        background-color: #F8F9FA;
     }}
 
     /* ===== Tabs styling ===== */
     .stTabs > div[role="tablist"] {{
-        gap: 4px;
+        gap: 2px;
     }}
     .stTabs > div[role="tablist"] > button {{
-        border-radius: 8px 8px 0 0;
+        border-radius: 6px 6px 0 0;
         font-weight: 600;
-        font-size: 0.88rem;
+        font-size: 0.85rem;
         padding: 0.5rem 1rem;
+        border-bottom: 2px solid transparent;
     }}
     .stTabs > div[role="tablist"] > button[aria-selected="true"] {{
         color: {PRIMARY_COLOR};
-        border-bottom: 3px solid {PRIMARY_COLOR};
+        border-bottom: 2px solid {PRIMARY_COLOR};
+        background-color: transparent;
+    }}
+    .stTabs > div[role="tablist"] > button[aria-selected="false"] {{
+        color: {TEXT_MUTED};
     }}
 
-    /* ===== Metric cards spacing ===== */
+    /* ===== Metric cards ===== */
     [data-testid="stMetric"] {{
         background: {BG_CARD};
-        border-radius: 10px;
-        padding: 0.8rem 1rem;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-        border-left: 3px solid {PRIMARY_LIGHT};
+        border-radius: 8px;
+        padding: 0.7rem 0.9rem;
+        border: 1px solid {BORDER_LIGHT};
     }}
-    [data-testid="stMetric"]:hover {{
-        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    [data-testid="stMetric"] label {{
+        font-size: 0.75rem !important;
+        color: {TEXT_MUTED} !important;
+        font-weight: 500 !important;
     }}
 
-    /* ===== Selectbox / Input styling ===== */
+    /* ===== Selectbox / Input ===== */
     .stSelectbox > div > div {{
-        border-radius: 8px;
+        border-radius: 6px;
+        border-color: {BORDER_LIGHT};
     }}
     .stNumberInput > div > input {{
-        border-radius: 8px;
+        border-radius: 6px;
+        border-color: {BORDER_LIGHT};
     }}
 
     /* ===== Section divider ===== */
     hr {{
         border: none;
         border-top: 1px solid {BORDER_LIGHT};
-        margin: 1.5rem 0;
+        margin: 1.2rem 0;
     }}
 
-    /* ===== Scrollbar styling ===== */
+    /* ===== Scrollbar ===== */
     ::-webkit-scrollbar {{
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
     }}
     ::-webkit-scrollbar-track {{
-        background: {BG_LIGHT};
+        background: transparent;
     }}
     ::-webkit-scrollbar-thumb {{
         background: #C4CDD5;
-        border-radius: 4px;
+        border-radius: 3px;
     }}
     ::-webkit-scrollbar-thumb:hover {{
-        background: {PRIMARY_LIGHT};
-    }}
-
-    /* ===== Sidebar ===== */
-    section[data-testid="stSidebar"] {{
-        background-color: {BG_CARD};
-        border-right: 1px solid {BORDER_LIGHT};
-    }}
-    section[data-testid="stSidebar"] .stMarkdown {{
-        font-size: 0.9rem;
+        background: {TEXT_MUTED};
     }}
 
     /* ===== Alert boxes ===== */
     .stAlert {{
-        border-radius: 10px;
+        border-radius: 8px;
     }}
 
-    /* ===== Download button ===== */
+    /* ===== Download button — subtle green ===== */
     .stDownloadButton > button {{
-        background: linear-gradient(135deg, {ACCENT_GREEN}, #219A52) !important;
+        background: {ACCENT_GREEN} !important;
         border: none !important;
-        border-radius: 10px !important;
-        font-weight: 600 !important;
-        box-shadow: 0 2px 8px rgba(39,174,96,0.25) !important;
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+        box-shadow: none !important;
     }}
     .stDownloadButton > button:hover {{
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(39,174,96,0.35) !important;
+        background: #155F3A !important;
+        transform: translateY(-1px);
     }}
 
-    /* ===== Disable browser tooltip on sidebar nav buttons to prevent blocking ===== */
-    div.stButton > button[title]::after,
-    .streamlit-expanderHeader[title]::after {{
+    /* ===== Sidebar section headers ===== */
+    section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] div[style*="font-size:0.7rem"] {{
+        color: #6B7177 !important;
+        border-bottom: 1px solid {BORDER_SIDEBAR} !important;
+        padding-bottom: 0.3rem !important;
+        margin-top: 1rem !important;
+    }}
+    section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] div[style*="font-size:0.65rem"] {{
+        color: #4A4F55 !important;
+    }}
+
+    /* ===== Disable tooltip blocking ===== */
+    div.stButton > button[title]::after {{
         content: none !important;
     }}
-    /* Remove the default title attribute tooltip that may block clicks */
-    section[data-testid="stSidebar"] div.stButton > button {{
-        pointer-events: auto !important;
-    }}
-    /* Hide any floating tooltip containers in sidebar */
     section[data-testid="stSidebar"] [data-baseweb="tooltip"] {{
         display: none !important;
     }}
+
+    /* ===== Search results in sidebar ===== */
+    section[data-testid="stSidebar"] small {{
+        color: {TEXT_SIDEBAR_MUTED} !important;
+    }}
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -4288,51 +4312,71 @@ def render_country_detail(country_name: str, country_code: str) -> None:
 # ============== Helper: Global Search ==============
 
 def global_search(query: str) -> list:
-    """Search across companies, countries, and industries. Returns list of (type, label, detail) tuples."""
+    """Search across economies, industries, methods, and companies. Returns list of (type, label, detail)."""
     results = []
-    if not query or len(query.strip()) < 2:
+    q = query.strip().lower()
+    if not q or len(q) < 1:
         return results
 
     companies_df = load_mock_companies()
     countries_df = load_countries_data_v2()
 
-    # Search companies
-    company_matches = companies_df[
-        companies_df['company_name'].str.contains(query, case=False, na=False)
-    ].head(10)
-    for _, row in company_matches.iterrows():
-        results.append(('company', row['company_name'],
-                         f"{row.get('country', '')} | {row.get('industry_code_isic', '')} | FY{row.get('fiscal_year', '')}"))
-
-    # Search countries — also search the full countries dataset
-    country_matches = companies_df[
-        companies_df['country'].str.contains(query, case=False, na=False)
-    ]['country'].unique()[:10]
-    for c in country_matches:
-        count = len(companies_df[companies_df['country'] == c])
-        results.append(('country', c, f"{count} 家公司 / {count} companies"))
-
-    # Also search the full UN economies list (even those without companies)
+    # --- 1. Search economies (by English name, ISO code, or partial match) ---
     if 'country' in countries_df.columns:
-        econ_matches = countries_df[
-            countries_df['country'].str.contains(query, case=False, na=False)
-        ].head(10)
-        for _, row in econ_matches.iterrows():
-            c = row['country']
-            if not any(r[1] == c for r in results):  # Avoid duplicates
-                comp_count = int(row.get('comparables_count', 0))
-                results.append(('country', c, f"{comp_count} 家可比 / {comp_count} comparables"))
+        for _, row in countries_df.iterrows():
+            c_name = str(row.get('country', ''))
+            iso = str(row.get('iso_code', ''))
+            # For 1-char queries, only match ISO code (3-letter) to avoid noise
+            if len(q) == 1:
+                if q == iso.lower():
+                    comp_count = int(row.get('comparables_count', 0))
+                    region = row.get('region', '')
+                    results.append(('🌐', c_name, f"{comp_count} 可比 / comparables | {region}"))
+            else:
+                if q in c_name.lower() or q in iso.lower():
+                    comp_count = int(row.get('comparables_count', 0))
+                    region = row.get('region', '')
+                    results.append(('🌐', c_name, f"{comp_count} 可比 / comparables | {region}"))
+                    if len(results) >= 15:
+                        break
 
-    # Search industries
+    # --- 2. Search industries (by ISIC code or industry name) ---
+    if 'industry' in companies_df.columns:
+        for ind_name in companies_df['industry'].unique():
+            if q in str(ind_name).lower():
+                count = len(companies_df[companies_df['industry'] == ind_name])
+                results.append(('🏭', ind_name, f"{count} 家公司 / companies"))
+        # Also search by ISIC code
     if 'industry_code_isic' in companies_df.columns:
-        industry_matches = companies_df[
-            companies_df['industry_code_isic'].astype(str).str.contains(query, case=False, na=False)
-        ]['industry_code_isic'].unique()[:5]
-        for ind in industry_matches:
-            count = len(companies_df[companies_df['industry_code_isic'] == ind])
-            results.append(('industry', f"ISIC {ind}", f"{count} 家公司 / {count} companies"))
+        for isic in companies_df['industry_code_isic'].unique():
+            if q in str(isic).lower():
+                count = len(companies_df[companies_df['industry_code_isic'] == isic])
+                results.append(('🏭', f"ISIC {isic}", f"{count} 家公司 / companies"))
 
-    return results
+    # --- 3. Search companies (by name or country) ---
+    if 'company_name' in companies_df.columns:
+        company_matches = companies_df[
+            companies_df['company_name'].str.contains(query, case=False, na=False)
+        ].head(5)
+        for _, row in company_matches.iterrows():
+            results.append(('🏢', row['company_name'],
+                           f"{row.get('country', '')} | {row.get('industry', '')} | FY{row.get('fiscal_year', '')}"))
+
+    # --- 4. Search by TP method keywords ---
+    method_map = {
+        'cup': ('CUP', '可比非受控价格法 / Comparable Uncontrolled Price'),
+        'rpm': ('RPM', '再销售价格法 / Resale Price Method'),
+        'cpm': ('CPM', '成本加成法 / Cost Plus Method'),
+        'tnmm': ('TNMM', '交易净利润法 / Transactional Net Margin Method'),
+        'psm': ('PSM', '利润分割法 / Profit Split Method'),
+        'alp': ('ALP', '独立交易原则 / Arm\'s Length Principle'),
+    }
+    for kw, (label, desc) in method_map.items():
+        if q in kw or q in label.lower() or q in desc.lower():
+            results.append(('🔧', label, desc))
+            break
+
+    return results[:20]
 
 
 # ============== Page 11: Methodology & Reference Framework ==============
@@ -4975,7 +5019,7 @@ def render_sidebar() -> str:
     """Render the sidebar navigation and return the selected page name."""
     with st.sidebar:
         st.markdown(
-            "<div class='sidebar-title'>🌍 国际转让定价对比数据库<br><span style='font-size:0.85rem;font-weight:500'>ITP Comparability Database</span></div>",
+            "<div class='sidebar-title'>🌍 ITP Comparability Database<br><span style='font-size:0.78rem;font-weight:400'>国际转让定价对比数据库</span></div>",
             unsafe_allow_html=True,
         )
         st.caption("联合国国际税收合作框架公约 / UN International Tax Cooperation Framework Convention")
@@ -4984,22 +5028,26 @@ def render_sidebar() -> str:
         # Global Search
         st.markdown("#### 🔎 全局搜索 / Global Search")
         search_query = st.text_input(
-            "搜索公司/经济体/行业 / Search",
-            placeholder="输入关键词... / Enter keyword...",
+            "搜索经济体/行业/方法 / Search",
+            placeholder="输入经济体名(如China/Japan)、行业(ISIC)或方法(CUP/TNMM)...",
             key="global_search_input",
-            help="搜索公司名称、经济体名、ISIC行业代码 / Search companies, economies, ISIC codes",
+            help="可搜索经济体英文名、ISO代码、行业、ISIC代码、TP方法 / Search economies, industries, ISIC codes, TP methods",
             label_visibility="collapsed",
         )
-        if search_query and len(search_query.strip()) >= 2:
+        if search_query and len(search_query.strip()) >= 1:
             results = global_search(search_query)
             if results:
-                st.markdown(f"**找到 {len(results)} 条结果 / {len(results)} results:**")
-                for r_type, r_label, r_detail in results[:15]:
-                    icon = {"company": "🏢", "country": "🌐", "industry": "🏭"}.get(r_type, "•")
-                    st.markdown(f"<small>{icon} <b>{r_label}</b> — {r_detail}</small>", unsafe_allow_html=True)
+                st.markdown(f"<small style='color:#C8CCD0'>找到 {len(results)} 条结果 / {len(results)} results:</small>")
+                for r_icon, r_label, r_detail in results[:15]:
+                    st.markdown(
+                        f"<div style='padding:0.3rem 0.5rem;border-bottom:1px solid #2C3138;'>"
+                        f"<small style='color:#C8CCD0'>{r_icon} <b style='color:#FFFFFF'>{r_label}</b> — {r_detail}</small>"
+                        f"</div>",
+                        unsafe_allow_html=True,
+                    )
                 st.markdown("---")
             else:
-                st.markdown("<small>无匹配结果 / No results found</small>")
+                st.markdown("<small style='color:#6B7177'>无匹配结果 / No results — try: China, India, CUP, TNMM, Mining...</small>")
                 st.markdown("---")
 
         # Navigation — categorized with bilingual labels (no tooltip to avoid blocking)
@@ -5082,7 +5130,7 @@ def render_sidebar() -> str:
             if 'db_error' in st.session_state:
                 st.warning(f"⚠️ 数据库连接失败，使用模拟数据。错误: {st.session_state['db_error'][:100]}")
 
-        st.markdown(f"<small style='color:{TEXT_MUTED}'>版本 v4.0 | {datetime.now().year} | Powered by UN Framework Convention</small>", unsafe_allow_html=True)
+        st.markdown(f"<small style='color:{TEXT_SIDEBAR_MUTED}'>版本 v5.0 | {datetime.now().year} | UN Framework Convention</small>", unsafe_allow_html=True)
 
         # Glossary
         with st.expander("📖 术语表 / Glossary"):
