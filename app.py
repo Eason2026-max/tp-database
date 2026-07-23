@@ -46,7 +46,7 @@ st.set_page_config(
 )
 
 # ============== Theme / Styling — Professional Business Theme ==============
-# Color palette: deep slate sidebar + warm neutral content + accent navy
+# Color palette: clean light sidebar + navy accents + warm neutral content
 PRIMARY_COLOR = "#1B365D"       # Deep navy — professional, institutional
 PRIMARY_DARK = "#0F2340"
 PRIMARY_LIGHT = "#2E5A8A"
@@ -55,16 +55,16 @@ ACCENT_RED = "#C0392B"
 ACCENT_YELLOW = "#D4A017"
 ACCENT_PURPLE = "#6B3FA0"
 ACCENT_TEAL = "#0E7C7B"
-BG_LIGHT = "#F4F5F7"            # Warm light gray
+BG_LIGHT = "#F5F6F8"            # Warm light gray
 BG_CARD = "#FFFFFF"
-BG_SIDEBAR = "#1B1F23"          # Dark sidebar
-BG_SIDEBAR_HOVER = "#2A3038"
+BG_SIDEBAR = "#FAFAFB"          # Clean light sidebar
+BG_SIDEBAR_HOVER = "#EEF0F3"
 TEXT_DARK = "#1A1D21"
 TEXT_MUTED = "#6B7177"
-TEXT_SIDEBAR = "#C8CCD0"
-TEXT_SIDEBAR_MUTED = "#6B7177"
+TEXT_SIDEBAR = "#3A3D42"        # Dark text on light sidebar
+TEXT_SIDEBAR_MUTED = "#8B8F95"
 BORDER_LIGHT = "#DDE0E4"
-BORDER_SIDEBAR = "#2C3138"
+BORDER_SIDEBAR = "#E5E7EB"
 
 st.markdown(
     f"""
@@ -158,7 +158,7 @@ st.markdown(
         background-color: #F0F2F5;
     }}
 
-    /* ===== Sidebar — Dark professional theme ===== */
+    /* ===== Sidebar — Clean light theme ===== */
     section[data-testid="stSidebar"] {{
         background-color: {BG_SIDEBAR} !important;
         border-right: 1px solid {BORDER_SIDEBAR};
@@ -170,17 +170,17 @@ st.markdown(
     .sidebar-title {{
         font-size: 1.05rem;
         font-weight: 700;
-        color: #FFFFFF;
+        color: {PRIMARY_COLOR};
         margin-bottom: 0.3rem;
         padding-bottom: 0.5rem;
-        border-bottom: 1px solid {BORDER_SIDEBAR};
+        border-bottom: 2px solid {PRIMARY_COLOR};
     }}
     section[data-testid="stSidebar"] .stCaption {{
         color: {TEXT_SIDEBAR_MUTED} !important;
         font-size: 0.72rem;
     }}
 
-    /* ===== Sidebar buttons — flat dark theme ===== */
+    /* ===== Sidebar buttons — flat light theme ===== */
     section[data-testid="stSidebar"] div.stButton > button {{
         background-color: transparent !important;
         color: {TEXT_SIDEBAR} !important;
@@ -196,8 +196,8 @@ st.markdown(
     }}
     section[data-testid="stSidebar"] div.stButton > button:hover {{
         background-color: {BG_SIDEBAR_HOVER} !important;
-        color: #FFFFFF !important;
-        border-left-color: {PRIMARY_LIGHT} !important;
+        color: {PRIMARY_COLOR} !important;
+        border-left-color: {PRIMARY_COLOR} !important;
         transform: none !important;
     }}
 
@@ -395,13 +395,13 @@ st.markdown(
 
     /* ===== Sidebar section headers ===== */
     section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] div[style*="font-size:0.7rem"] {{
-        color: #6B7177 !important;
+        color: {TEXT_SIDEBAR_MUTED} !important;
         border-bottom: 1px solid {BORDER_SIDEBAR} !important;
         padding-bottom: 0.3rem !important;
         margin-top: 1rem !important;
     }}
     section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] div[style*="font-size:0.65rem"] {{
-        color: #4A4F55 !important;
+        color: {TEXT_SIDEBAR_MUTED} !important;
     }}
 
     /* ===== Disable tooltip blocking ===== */
@@ -722,9 +722,11 @@ def load_map_cases() -> pd.DataFrame:
             'Closed': 'Resolved',
             'Agreed': 'Resolved',
             'Implemented': 'Resolved',
+            'Arbitration concluded': 'Resolved',
             'Under negotiation': 'Active',
-            'Pending': 'Pending',
             'Arbitration pending': 'Active',
+            'Pending': 'Pending',
+            'Withdrawn': 'Closed - No agreement',
         }
         df['status'] = df['status'].replace(status_map).fillna('Pending')
         df['amount_disputed_musd'] = df['amount_disputed_musd'].fillna(0)
@@ -1662,15 +1664,16 @@ def comparability_wizard() -> None:
             st.caption("确保可比公司以独立交易为主，排除高度关联化的企业。")
             rp_max = st.slider(
                 "关联交易占比上限 / Max Related-Party Revenue Ratio",
-                0.0, 1.0, 0.30, format="%.0f%%",
-                help="💡 关联交易占比>30%的公司通常不适合作为独立可比。建议默认30%上限。\n依据：UN TP Manual Ch.3 — 可比公司应以独立交易为主",
+                0.0, 1.0, 0.70, format="%.0f%%",
+                help="💡 关联交易占比>70%的公司通常不适合作为独立可比。建议默认70%上限，可根据实际情况收紧。\n依据：UN TP Manual Ch.3 — 可比公司应以独立交易为主",
             )
             if 'ownership_type' in companies_df.columns:
+                available_ownership = sorted(companies_df['ownership_type'].dropna().unique().tolist())
                 ownership_filter = st.multiselect(
                     "所有权类型 / Ownership Type",
-                    ["Independent", "Subsidiary", "Public", "Private"],
-                    default=["Independent", "Public"],
-                    help="独立公司可比性更强",
+                    available_ownership,
+                    default=available_ownership,
+                    help="独立公司可比性更强，默认全选",
                 )
             else:
                 ownership_filter = []
@@ -1691,7 +1694,7 @@ def comparability_wizard() -> None:
             min_data_tier = st.selectbox(
                 "最低数据密级 / Minimum Data Tier",
                 ["Tier1", "Tier2", "Tier3"],
-                index=1,
+                index=2,
                 help="💡 Tier1=审计财报（最可靠）, Tier2=税务评估数据, Tier3=估算数据\n建议至少Tier2以上",
             )
 
@@ -1700,19 +1703,24 @@ def comparability_wizard() -> None:
             st.caption("按收入规模、资产规模等定量指标进一步缩小范围。")
             qi1, qi2 = st.columns(2)
             with qi1:
+                # Auto-calculate sensible defaults from actual data
+                rev_lo = float(companies_df["revenue_musd"].min())
+                rev_hi = float(companies_df["revenue_musd"].max())
+                rev_default_lo = max(rev_lo, rev_lo)  # Start from actual min
+                rev_default_hi = min(rev_hi, rev_hi)  # End at actual max
                 rev_min, rev_max = st.slider(
                     "收入范围 / Revenue Range (M$)",
-                    float(companies_df["revenue_musd"].min()),
-                    float(companies_df["revenue_musd"].max()),
-                    (5.0, 500.0),
+                    rev_lo, rev_hi,
+                    (rev_default_lo, rev_default_hi),
                     help="与被测试方收入规模相近的公司更具可比性",
                 )
             with qi2:
+                asset_lo = float(companies_df["net_assets_musd"].min())
+                asset_hi = float(companies_df["net_assets_musd"].max())
                 asset_min, asset_max = st.slider(
                     "净资产范围 / Net Assets Range (M$)",
-                    float(companies_df["net_assets_musd"].min()),
-                    float(companies_df["net_assets_musd"].max()),
-                    (1.0, 750.0),
+                    asset_lo, asset_hi,
+                    (asset_lo, asset_hi),
                     help="资产规模相近的公司运营模式更具可比性",
                 )
 
@@ -2079,9 +2087,9 @@ def comparability_wizard() -> None:
             sel_industry = step3_data.get("Industry", "")
             sel_countries_str = step3_data.get("经济体 / Economies", "All")
             fy_range_str = step3_data.get("FY Range", "2022-2024")
-            rev_range_str = step3_data.get("Revenue Range", "$5.0M - $500.0M")
-            asset_range_str = step3_data.get("Net Assets Range", "$1.0M - $750.0M")
-            rp_max_str = step3_data.get("Max Related Party %", "30%")
+            rev_range_str = step3_data.get("Revenue Range", "Auto")
+            asset_range_str = step3_data.get("Net Assets Range", "Auto")
+            rp_max_str = step3_data.get("Max Related Party %", "70%")
 
             filtered = companies_df.copy()
             # Recreate isic_section the same way Step 3 does
@@ -3792,24 +3800,27 @@ def risk_assessment() -> None:
                                     help="在零税或极低税管辖区（如BVI、开曼、百慕大等）设立子公司是高风险信号。"
                                     "OECD有害税收实践论坛(FHTP)维护避税地清单。")
 
-        # Industry benchmark margins (approximate median OM by industry)
+        # Industry benchmark margins — calibrated to actual database medians
         industry_benchmarks = {
-            "Manufacturing": 8.0,
-            "Services": 10.0,
-            "Digital/Tech": 15.0,
-            "Pharmaceuticals": 20.0,
-            "Mining": 12.0,
-            "Financial Services": 18.0,
+            "Manufacturing": 20.0,
+            "Services": 30.0,
+            "Digital/Tech": 40.0,
+            "Pharmaceuticals": 47.0,
+            "Mining": 24.0,
+            "Financial Services": 30.0,
         }
         industry_median_om = industry_benchmarks.get(industry, 10.0)
 
-        # Calculate risk scores — relative to industry benchmark, not fixed 10%
+        # Calculate risk scores — calibrated per OECD TPG & UN TP Manual
+        # 1. Profit deviation: how far from industry median (normalized)
+        om_deviation = abs(operating_margin - industry_median_om)
+        # Risk = 0 when at median, 100 when >2x median away
         risk_dims = {
-            '利润率偏离\nProfit Deviation': max(0, min(100, (industry_median_om + 5 - abs(operating_margin - industry_median_om)) * (100 / (industry_median_om + 5)))),
-            '关联交易占比\nRelated Party': min(100, rp_ratio * 1.5),
-            '低税管辖区使用\nTax Haven Use': (80 if tax_haven_use else 20) + (100 - effective_tax * 2),
+            '利润率偏离\nProfit Deviation': min(100, max(0, (om_deviation / max(industry_median_om * 0.5, 5.0)) * 50)),
+            '关联交易占比\nRelated Party': min(100, rp_ratio * 1.2),
+            '低税管辖区使用\nTax Haven Use': min(100, (60 if tax_haven_use else 10) + max(0, (25 - effective_tax) * 2)),
             '无形资产迁移\nIntangibles Migration': (85 if intangibles_transfer else 15),
-            '债务杠杆\nDebt Leverage': min(100, debt_to_equity * 15),
+            '债务杠杆\nDebt Leverage': min(100, max(0, (debt_to_equity - 3.0) * 20)),
             '功能风险匹配\nFunction-Risk Match': 50,  # Default moderate
         }
 
@@ -4096,7 +4107,7 @@ def industry_benchmark() -> None:
         sel_tier = st.multiselect(
             "数据密级 / Data Tier",
             ['Tier1', 'Tier2', 'Tier3'],
-            default=['Tier1', 'Tier2'],
+            default=['Tier1', 'Tier2', 'Tier3'],
             help="Tier1最可靠，建议优先使用"
         )
 
@@ -5022,7 +5033,7 @@ def render_sidebar() -> str:
             "<div class='sidebar-title'>🌍 ITP Comparability Database<br><span style='font-size:0.78rem;font-weight:400'>国际转让定价对比数据库</span></div>",
             unsafe_allow_html=True,
         )
-        st.caption("联合国国际税收合作框架公约 / UN International Tax Cooperation Framework Convention")
+        st.caption("联合国国际税收合作框架公约 / UN Framework Convention on International Tax Cooperation")
         st.markdown("---")
 
         # Global Search
@@ -5037,17 +5048,17 @@ def render_sidebar() -> str:
         if search_query and len(search_query.strip()) >= 1:
             results = global_search(search_query)
             if results:
-                st.markdown(f"<small style='color:#C8CCD0'>找到 {len(results)} 条结果 / {len(results)} results:</small>")
+                st.markdown(f"<small style='color:{TEXT_SIDEBAR_MUTED}'>找到 {len(results)} 条结果 / {len(results)} results:</small>")
                 for r_icon, r_label, r_detail in results[:15]:
                     st.markdown(
-                        f"<div style='padding:0.3rem 0.5rem;border-bottom:1px solid #2C3138;'>"
-                        f"<small style='color:#C8CCD0'>{r_icon} <b style='color:#FFFFFF'>{r_label}</b> — {r_detail}</small>"
+                        f"<div style='padding:0.3rem 0.5rem;border-bottom:1px solid {BORDER_SIDEBAR};'>"
+                        f"<small style='color:{TEXT_SIDEBAR_MUTED}'>{r_icon} <b style='color:{PRIMARY_COLOR}'>{r_label}</b> — {r_detail}</small>"
                         f"</div>",
                         unsafe_allow_html=True,
                     )
                 st.markdown("---")
             else:
-                st.markdown("<small style='color:#6B7177'>无匹配结果 / No results — try: China, India, CUP, TNMM, Mining...</small>")
+                st.markdown(f"<small style='color:{TEXT_SIDEBAR_MUTED}'>无匹配结果 / No results — try: China, India, CUP, TNMM, Mining...</small>")
                 st.markdown("---")
 
         # Navigation — categorized with bilingual labels (no tooltip to avoid blocking)
